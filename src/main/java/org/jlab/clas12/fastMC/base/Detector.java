@@ -85,6 +85,6 @@ public abstract class Detector {
     }
 
     public Shape3D getComponent(int sector){
-        return this.components.get(sector + 1);
+        return this.components.get(sector - 1);
     }
 }
