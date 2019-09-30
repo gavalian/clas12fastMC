@@ -19,7 +19,7 @@ import org.jlab.jnp.geom.prim.Shape3D;
  */
 public abstract class Detector {
     private String name;
-    private double distance;
+    double distance;
     private double tilt;
     private ArrayList<Shape3D> components = new ArrayList<>();
 
@@ -27,9 +27,30 @@ public abstract class Detector {
     public abstract List<DetectorHit> getHits(Path3D path);
     public abstract void init();
 
+    public double getDistance() {
+        return distance;
+    }
+
+    public double getTilt() {
+        return tilt;
+    }
+
+    public void setName(String name){
+        this.name = name;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    public void setTilt(double tilt) {
+        this.tilt = tilt;
+    }
+
     public void addComponent(Shape3D shape){
         this.components.add(shape);
     }
+
 
     public boolean hasIntersection(Path3D path){
         Iterator<Shape3D> shapes = components.iterator();
