@@ -38,8 +38,8 @@ public class ECDetector extends Detector {
     public void init(){
         for(int i = 0; i < 6; i++){
             Triangle3D tri = createSector();
-            tri.translateXYZ(0.0,0.0,distance);
-            tri.rotateY(Math.toRadians(tilt));
+            tri.translateXYZ(0.0,0.0,this.getDistance());
+            tri.rotateY(Math.toRadians(this.getTilt()));
             tri.rotateZ(Math.toRadians(60*i));
             Shape3D  shape = new Shape3D();
             shape.addFace(tri);
