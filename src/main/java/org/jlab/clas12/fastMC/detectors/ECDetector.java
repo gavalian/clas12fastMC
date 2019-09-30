@@ -56,3 +56,4 @@ public class ECDetector extends Detector {
                 -b,    0.0,  0.0);
     }
 }
+

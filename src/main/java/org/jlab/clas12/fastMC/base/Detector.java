@@ -51,7 +51,6 @@ public abstract class Detector {
         this.components.add(shape);
     }
 
-
     public boolean hasIntersection(Path3D path){
         Iterator<Shape3D> shapes = components.iterator();
         while(shapes.hasNext()){
