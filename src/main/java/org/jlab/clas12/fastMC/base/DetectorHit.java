@@ -5,7 +5,10 @@
  */
 package org.jlab.clas12.fastMC.base;
 
+import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Vector3D;
+
+import java.util.ArrayList;
 
 /**
  *
