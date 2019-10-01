@@ -18,10 +18,12 @@ import org.jlab.jnp.geom.prim.Shape3D;
  * @author viducic
  */
 public abstract class Detector {
-    private String name;
-    double distance;
+    private DetectorType detectorType;
+    private DetectorRegion detectorRegion;
+    private double distance;
     private double tilt;
     private ArrayList<Shape3D> components = new ArrayList<>();
+
 
 
     public abstract List<DetectorHit> getHits(Path3D path);
@@ -31,12 +33,28 @@ public abstract class Detector {
         return distance;
     }
 
+    public DetectorRegion getDetectorRegion() {
+        return detectorRegion;
+    }
+
+    public DetectorType getDetectorType() {
+        return detectorType;
+    }
+
+    public ArrayList<Shape3D> getComponents(){
+        return components;
+    }
+
     public double getTilt() {
         return tilt;
     }
 
-    public void setName(String name){
-        this.name = name;
+    public void setType(DetectorType detectorType){
+        this.detectorType = detectorType;
+    }
+
+    public void setDetectorRegion(DetectorRegion detectorRegion){
+        this.detectorRegion = detectorRegion;
     }
 
     public void setDistance(double distance) {
