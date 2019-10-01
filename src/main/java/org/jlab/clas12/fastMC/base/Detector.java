@@ -20,7 +20,7 @@ import org.jlab.jnp.geom.prim.Shape3D;
 public abstract class Detector {
     private DetectorType detectorType;
     private DetectorRegion detectorRegion;
-    private double distance;
+    private double distanceToTarget;
     private double tilt;
     private ArrayList<Shape3D> components = new ArrayList<>();
 
@@ -29,8 +29,8 @@ public abstract class Detector {
     public abstract List<DetectorHit> getHits(Path3D path);
     public abstract void init();
 
-    public double getDistance() {
-        return distance;
+    public double getDistanceToTarget() {
+        return distanceToTarget;
     }
 
     public DetectorRegion getDetectorRegion() {
@@ -57,8 +57,8 @@ public abstract class Detector {
         this.detectorRegion = detectorRegion;
     }
 
-    public void setDistance(double distance) {
-        this.distance = distance;
+    public void setDistanceToTarget(double distanceToTarget) {
+        this.distanceToTarget = distanceToTarget;
     }
 
     public void setTilt(double tilt) {
