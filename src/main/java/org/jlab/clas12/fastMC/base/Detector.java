@@ -18,15 +18,15 @@ import org.jlab.jnp.geom.prim.Shape3D;
  * @author viducic
  */
 public abstract class Detector {
+    
     private DetectorType detectorType;
     private DetectorRegion detectorRegion;
     private double distance;
     private double tilt;
     private ArrayList<Shape3D> components = new ArrayList<>();
 
-
-
     public abstract List<DetectorHit> getHits(Path3D path);
+    
     public abstract void init();
 
     public double getDistance() {
@@ -71,9 +71,10 @@ public abstract class Detector {
 
     public boolean hasIntersection(Path3D path){
         Iterator<Shape3D> shapes = components.iterator();
+        List<Point3D>     points = new ArrayList<Point3D>();
         while(shapes.hasNext()){
             Shape3D shape = shapes.next();
-            if(shape.hasIntersection(path)){
+            if(shape.intersection(path, points)>0){
                 return true;
             }
         }
