@@ -23,6 +23,7 @@ public abstract class Detector {
     private DetectorRegion detectorRegion;
     private double distance;
     private double tilt;
+    
     private ArrayList<Shape3D> components = new ArrayList<>();
 
     public abstract List<DetectorHit> getHits(Path3D path);
@@ -79,28 +80,6 @@ public abstract class Detector {
             }
         }
         return false;
-    }
-
-    public ArrayList<Point3D> intersection(Path3D path, ArrayList<Point3D> points){
-        Iterator<Shape3D> shapes = components.iterator();
-        while(shapes.hasNext()){
-            Shape3D shape = shapes.next();
-            if(shape.hasIntersection(path)){
-                shape.intersection(path, points);
-            }
-        }
-        return points;
-    }
-
-    public int getIntersectionComponent(Path3D path){
-        Iterator<Shape3D> shapes = components.iterator();
-        while(shapes.hasNext()){
-            Shape3D shape = shapes.next();
-            if(shape.hasIntersection(path)){
-                return (this.components.indexOf(shape) + 1);
-            }
-        }
-        return -1;
     }
 
     public Shape3D getComponent(int sector){
