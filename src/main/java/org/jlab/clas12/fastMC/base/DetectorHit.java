@@ -31,6 +31,10 @@ public class DetectorHit {
     
     public DetectorHit setDetectorType(DetectorType type){   detectorType = type; return this;}
     public DetectorHit setDetectorRegion(DetectorRegion region){ detectorRegion = region; return this;}
+
+    public Vector3D getHitPosition(){
+        return hitPosition;
+    }
     
     
 }
