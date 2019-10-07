@@ -30,12 +30,10 @@ public class DC1Detector extends Detector {
 
     @Override
     public List<DetectorHit> getHits(Path3D path) {
-        List<DetectorHit> hits = new ArrayList<>();
-        if (this.hasIntersection(path)) {
-            ArrayList<Point3D> intersectionPoints = new ArrayList<>();
-            this.intersection(path, intersectionPoints);
-            hits = points2Hits(intersectionPoints);
-        }
+        List<DetectorHit> hits;
+        ArrayList<Point3D> intersectionPoints;
+        intersectionPoints = this.intersection(path);
+        hits = points2Hits(intersectionPoints);
         return hits;
     }
 
