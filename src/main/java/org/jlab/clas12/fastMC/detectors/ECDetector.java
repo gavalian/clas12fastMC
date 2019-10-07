@@ -36,11 +36,9 @@ public class ECDetector extends Detector {
     @Override
     public List<DetectorHit> getHits(Path3D path) {
         List<DetectorHit> hits = new ArrayList<DetectorHit>();
-        if (this.hasIntersection(path)) {
-            ArrayList<Point3D> intersectionPoints = new ArrayList<>();
-            this.intersection(path, intersectionPoints);
-            hits = points2Hits(intersectionPoints);
-        }
+        ArrayList<Point3D> intersectionPoints = new ArrayList<>();
+        intersectionPoints = this.intersection(path);
+        hits = points2Hits(intersectionPoints);
         return hits;
     }
 

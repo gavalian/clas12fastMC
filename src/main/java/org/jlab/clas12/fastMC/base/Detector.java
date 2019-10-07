@@ -5,6 +5,7 @@
  */
 package org.jlab.clas12.fastMC.base;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -70,16 +71,14 @@ public abstract class Detector {
         this.components.add(shape);
     }
 
-    public boolean hasIntersection(Path3D path){
+    public ArrayList<Point3D> intersection(Path3D path){
         Iterator<Shape3D> shapes = components.iterator();
-        List<Point3D>     points = new ArrayList<Point3D>();
+        ArrayList<Point3D>     points = new ArrayList<Point3D>();
         while(shapes.hasNext()){
             Shape3D shape = shapes.next();
-            if(shape.intersection(path, points)>0){
-                return true;
-            }
+            int numIntersections = shape.intersection(path, points);
         }
-        return false;
+        return points;
     }
 
     public Shape3D getComponent(int sector){
