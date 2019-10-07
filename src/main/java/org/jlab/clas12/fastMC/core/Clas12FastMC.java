@@ -12,6 +12,7 @@ import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
  * @author gavalian
  */
 public class Clas12FastMC {
+    
     private ParticleSwimmer particleSwimmer = null;
     
     public Clas12FastMC(){
