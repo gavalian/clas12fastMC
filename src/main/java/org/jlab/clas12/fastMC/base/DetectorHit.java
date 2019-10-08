@@ -5,10 +5,7 @@
  */
 package org.jlab.clas12.fastMC.base;
 
-import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Vector3D;
-
-import java.util.ArrayList;
 
 /**
  *
@@ -35,6 +32,21 @@ public class DetectorHit {
     public Vector3D getHitPosition(){
         return hitPosition;
     }
-    
+
+    public double getX(){
+        return hitPosition.x();
+    }
+
+    public double getY(){
+        return hitPosition.y();
+    }
+
+    public double getZ(){
+        return hitPosition.z();
+    }
+
+    public double getTheta(){
+        return hitPosition.theta();
+    }
     
 }
