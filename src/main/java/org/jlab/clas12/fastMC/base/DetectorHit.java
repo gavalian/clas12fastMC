@@ -33,20 +33,5 @@ public class DetectorHit {
         return hitPosition;
     }
 
-    public double getX(){
-        return hitPosition.x();
-    }
-
-    public double getY(){
-        return hitPosition.y();
-    }
-
-    public double getZ(){
-        return hitPosition.z();
-    }
-
-    public double getTheta(){
-        return hitPosition.theta();
-    }
     
 }
