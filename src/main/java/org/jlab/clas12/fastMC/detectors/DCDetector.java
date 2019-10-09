@@ -38,16 +38,6 @@ public class DCDetector extends Detector {
         return getHits(path).size() == 6;
     }
 
-    private ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
-        ArrayList<DetectorHit> hits = new ArrayList<>();
-        for(Point3D point : points) {
-            DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());
-            hit.setDetectorRegion(getDetectorRegion()).setDetectorType(getDetectorType());
-            hits.add(hit);
-        }
-        return hits;
-    }
-
     @Override
     public void init() {
         for(int j = 1; j < 7; j++){

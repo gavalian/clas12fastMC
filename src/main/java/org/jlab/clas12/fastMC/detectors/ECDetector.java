@@ -34,7 +34,7 @@ public class ECDetector extends Detector {
     @Override
     public List<DetectorHit> getHits(Path3D path) {
         List<DetectorHit> hits = new ArrayList<DetectorHit>();
-        ArrayList<Point3D> intersectionPoints = new ArrayList<>();
+        ArrayList<Point3D> intersectionPoints;
         intersectionPoints = this.intersection(path);
         hits = points2Hits(intersectionPoints);
         return hits;
@@ -43,16 +43,6 @@ public class ECDetector extends Detector {
     @Override
     public boolean validEvent(Path3D path) {
         return getHits(path).size() > 0;
-    }
-
-    private ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
-        ArrayList<DetectorHit> hits = new ArrayList<>();
-        for(Point3D point : points) {
-            DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());
-            hit.setDetectorRegion(getDetectorRegion()).setDetectorType(getDetectorType());
-            hits.add(hit);
-        }
-        return hits;
     }
 
     @Override

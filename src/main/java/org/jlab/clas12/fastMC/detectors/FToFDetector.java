@@ -36,7 +36,7 @@ public class FToFDetector extends Detector {
         return getHits(path).size() > 0;
     }
 
-    private ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
+    public ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
         ArrayList<DetectorHit> hits = new ArrayList<>();
         for(Point3D point : points) {
             DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());

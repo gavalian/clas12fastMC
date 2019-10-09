@@ -85,4 +85,14 @@ public abstract class Detector {
     public Shape3D getComponent(int sector){
         return this.components.get(sector - 1);
     }
+
+    public ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
+        ArrayList<DetectorHit> hits = new ArrayList<>();
+        for(Point3D point : points) {
+            DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());
+            hit.setDetectorRegion(getDetectorRegion()).setDetectorType(getDetectorType());
+            hits.add(hit);
+        }
+        return hits;
+    }
 }
