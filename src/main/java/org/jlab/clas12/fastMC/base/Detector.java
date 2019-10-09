@@ -12,6 +12,7 @@ import java.util.List;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Shape3D;
+import org.jlab.jnp.physics.Particle;
 
 /**
  *
@@ -28,7 +29,7 @@ public abstract class Detector {
     private ArrayList<Shape3D> components = new ArrayList<>();
 
     public abstract List<DetectorHit> getHits(Path3D path);
-    
+    public abstract boolean validEvent(Path3D path);
     public abstract void init();
 
     public double getDistanceToTarget() {

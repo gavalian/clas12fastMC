@@ -8,6 +8,7 @@ import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Shape3D;
 import org.jlab.jnp.geom.prim.Triangle3D;
+import org.jlab.jnp.physics.Particle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,11 @@ public class DCDetector extends Detector {
         return hits;
     }
 
+    @Override
+    public boolean validEvent(Path3D path) {
+        return getHits(path).size() == 6;
+    }
+
     private ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
         ArrayList<DetectorHit> hits = new ArrayList<>();
         for(Point3D point : points) {
@@ -48,7 +54,7 @@ public class DCDetector extends Detector {
             for(int i = 0; i < 6; i++) {
                 Triangle3D sector = createSector(j);
                 sector.show();
-                sector.translateXYZ(0, 0, this.getDistanceToTarget());
+                sector.translateXYZ(0, 0, this.params.getDist2Targ(j));
                 sector.rotateY(Math.toRadians(this.getTilt()));
                 sector.rotateZ(Math.toRadians(i * 60));
                 Shape3D shape = new Shape3D();

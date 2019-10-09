@@ -40,6 +40,11 @@ public class ECDetector extends Detector {
         return hits;
     }
 
+    @Override
+    public boolean validEvent(Path3D path) {
+        return getHits(path).size() > 0;
+    }
+
     private ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
         ArrayList<DetectorHit> hits = new ArrayList<>();
         for(Point3D point : points) {
