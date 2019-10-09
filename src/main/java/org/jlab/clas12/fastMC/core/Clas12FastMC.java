@@ -5,17 +5,32 @@
  */
 package org.jlab.clas12.fastMC.core;
 
+import org.jlab.clas12.fastMC.base.Detector;
+import org.jlab.clas12.fastMC.detectors.DCDetector;
+import org.jlab.clas12.fastMC.detectors.ECDetector;
+import org.jlab.clas12.fastMC.detectors.FToFDetector;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
+import org.jlab.jnp.geom.prim.Path3D;
+import org.jlab.jnp.physics.Particle;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
  * @author gavalian
+ * @author viducic
  */
 public class Clas12FastMC {
-    
+
+    private ArrayList<Detector> detectors;
     private ParticleSwimmer particleSwimmer = null;
     
     public Clas12FastMC(){
+        detectors = new ArrayList<>();
+        this.addDetector(new DCDetector());
+        this.addDetector(new ECDetector());
+        this.addDetector(new FToFDetector());
         initSwimmer(-1.0,1.0);
     }
     
@@ -25,7 +40,22 @@ public class Clas12FastMC {
     
     private void initSwimmer(double torusField, double solenoidField){
         particleSwimmer = new ParticleSwimmer(torusField, solenoidField);
-        
+    }
+
+    public void addDetector(Detector detector){
+        this.detectors.add(detector);
+    }
+
+    public boolean validHit(Particle part){
+        Iterator<Detector> detectors = this.detectors.iterator();
+        while (detectors.hasNext()){
+            Detector currentDetector = detectors.next();
+            Path3D particlePath = particleSwimmer.getParticlePath(part);
+            if(!currentDetector.validEvent(particlePath)){
+                return false;
+            }
+        }
+        return true;
     }
     
     
