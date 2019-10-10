@@ -5,9 +5,7 @@
  */
 package org.jlab.clas12.fastMC.detectors;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import org.jlab.clas12.fastMC.base.Detector;
 import org.jlab.clas12.fastMC.base.DetectorHit;
@@ -21,14 +19,14 @@ import org.jlab.jnp.geom.prim.Triangle3D;
 /**
  *
  * @author gavalian
- * @authon viducic
+ * @author viducic
  */
 public class ECDetector extends Detector {
 
     public ECDetector() {
         this.setType(DetectorType.ECAL);
         this.setDetectorRegion(DetectorRegion.FORWARD);
-        this.setDistance(721.7);
+        this.setDistanceToTarget(721.7);
         this.setTilt(25.0);
         init();
     }
@@ -36,29 +34,22 @@ public class ECDetector extends Detector {
     @Override
     public List<DetectorHit> getHits(Path3D path) {
         List<DetectorHit> hits = new ArrayList<DetectorHit>();
-        if (this.hasIntersection(path)) {
-            ArrayList<Point3D> intersectionPoints = new ArrayList<>();
-            this.intersection(path, intersectionPoints);
-            hits = points2Hits(intersectionPoints);
-        }
+        ArrayList<Point3D> intersectionPoints;
+        intersectionPoints = this.intersection(path);
+        hits = points2Hits(intersectionPoints);
         return hits;
     }
 
-    public ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
-        ArrayList<DetectorHit> hits = new ArrayList<>();
-        for(Point3D point : points) {
-            DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());
-            hit.setDetectorRegion(getDetectorRegion()).setDetectorType(getDetectorType());
-            hits.add(hit);
-        }
-        return hits;
+    @Override
+    public boolean validEvent(Path3D path) {
+        return getHits(path).size() > 0;
     }
 
     @Override
     public void init() {
         for (int i = 0; i < 6; i++) {
             Triangle3D tri = createSector();
-            tri.translateXYZ(0.0, 0.0, this.getDistance());
+            tri.translateXYZ(0.0, 0.0, this.getDistanceToTarget());
             tri.rotateY(Math.toRadians(this.getTilt()));
             tri.rotateZ(Math.toRadians(60 * i));
             Shape3D shape = new Shape3D();

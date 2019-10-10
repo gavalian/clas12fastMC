@@ -5,12 +5,14 @@
  */
 package org.jlab.clas12.fastMC.base;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Shape3D;
+import org.jlab.jnp.physics.Particle;
 
 /**
  *
@@ -21,17 +23,17 @@ public abstract class Detector {
     
     private DetectorType detectorType;
     private DetectorRegion detectorRegion;
-    private double distance;
+    private double distanceToTarget;
     private double tilt;
     
     private ArrayList<Shape3D> components = new ArrayList<>();
 
     public abstract List<DetectorHit> getHits(Path3D path);
-    
+    public abstract boolean validEvent(Path3D path);
     public abstract void init();
 
-    public double getDistance() {
-        return distance;
+    public double getDistanceToTarget() {
+        return distanceToTarget;
     }
 
     public DetectorRegion getDetectorRegion() {
@@ -58,8 +60,8 @@ public abstract class Detector {
         this.detectorRegion = detectorRegion;
     }
 
-    public void setDistance(double distance) {
-        this.distance = distance;
+    public void setDistanceToTarget(double distanceToTarget) {
+        this.distanceToTarget = distanceToTarget;
     }
 
     public void setTilt(double tilt) {
@@ -70,19 +72,27 @@ public abstract class Detector {
         this.components.add(shape);
     }
 
-    public boolean hasIntersection(Path3D path){
+    public ArrayList<Point3D> intersection(Path3D path){
         Iterator<Shape3D> shapes = components.iterator();
-        List<Point3D>     points = new ArrayList<Point3D>();
+        ArrayList<Point3D>     points = new ArrayList<Point3D>();
         while(shapes.hasNext()){
             Shape3D shape = shapes.next();
-            if(shape.intersection(path, points)>0){
-                return true;
-            }
+            int numIntersections = shape.intersection(path, points);
         }
-        return false;
+        return points;
     }
 
     public Shape3D getComponent(int sector){
         return this.components.get(sector - 1);
+    }
+
+    public ArrayList<DetectorHit> points2Hits(ArrayList<Point3D> points){
+        ArrayList<DetectorHit> hits = new ArrayList<>();
+        for(Point3D point : points) {
+            DetectorHit hit = new DetectorHit(point.x(), point.y(), point.z());
+            hit.setDetectorRegion(getDetectorRegion()).setDetectorType(getDetectorType());
+            hits.add(hit);
+        }
+        return hits;
     }
 }
