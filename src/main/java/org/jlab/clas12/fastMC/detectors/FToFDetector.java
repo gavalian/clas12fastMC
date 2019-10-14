@@ -32,7 +32,7 @@ public class FToFDetector extends Detector {
     }
 
     @Override
-    public boolean validEvent(Path3D path) {
+    public boolean validHit(Path3D path) {
         return getHits(path).size() > 0;
     }
 
