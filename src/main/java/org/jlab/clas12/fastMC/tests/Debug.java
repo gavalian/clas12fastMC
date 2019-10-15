@@ -192,9 +192,9 @@ public class Debug {
     }
 
     private static void particleSwimmerTest(){
-        Particle charged = Particle.createWithMassCharge(1, 1, 0.1, 0.1, 0.1, 0, 0, 0);
-        Particle uncharged = Particle.createWithMassCharge(1, 0, 0.1, 0.1, 0.1, 0, 0, 0);
-        Particle negcharged = Particle.createWithMassCharge(1, -1, 0.1, 0.1, 0.1, 0, 0, 0);
+        Particle charged = Particle.createWithMassCharge(1, 1, 0.1, 0.0, 0.1, 0, 0, 0.5);
+        Particle uncharged = Particle.createWithMassCharge(1, 0, 0.0, 0.0, 0.1, 0, 0, 0.5);
+        Particle negcharged = Particle.createWithMassCharge(1, -1, 0.1, 0.0, 0.1, 0, 0, 0.5);
 
         System.out.println(negcharged.charge());
 
@@ -210,6 +210,7 @@ public class Debug {
     }
 
     public static void main(String[] args) {
+        System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
         particleSwimmerTest();
     }
 
