@@ -56,8 +56,8 @@ public class ParticleSwimmer {
          }
          
          if(jnpDataDirectory==null){
-             System.out.println("[ParticleSwimmer] : Oooops, this doesn't look rigth......");
-             System.out.println("[ParticleSwimmer] : environment JNP_DATA is not set. no fileds will be loaded.");
+             System.out.println("[ParticleSwimmer] : Oooops, this doesn't look right......");
+             System.out.println("[ParticleSwimmer] : environment JNP_DATA is not set. no files will be loaded.");
              System.out.println("[ParticleSwimmer] : We are looking for two files to be present on your system.");
              System.out.println("[ParticleSwimmer] : Torus    : $JNP_DATA/etc/data/magfield/clas12-fieldmap-torus.dat");
              System.out.println("[ParticleSwimmer] : Solenoid : $JNP_DATA/etc/data/magfield/clas12-fieldmap-solenoid.dat");
