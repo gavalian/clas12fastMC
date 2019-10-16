@@ -17,10 +17,16 @@ import java.util.List;
 
 public class Debug {
 
+    
+    public  Debug(){
+        
+    }
+    
     private static void DCTest() {
         //List<String> dataFiles = FileFinder.getFiles("/media/tylerviducic/Elements/clas12/mcdata/*.dat");
         String dataFile = "";
-        //System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
+        System.setProperty("JNP_DATA","/Users/gavalian/Work/DataSpace/JNP_DATA");
+        
         H2F hSquare = new H2F("hSquare", "hSquare", 200, -450, 450, 200, -450, 450);
         TCanvas c1 = new TCanvas("c1", 500, 500);
 
@@ -210,8 +216,12 @@ public class Debug {
     }
 
     public static void main(String[] args) {
-        System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
-        particleSwimmerTest();
+        //System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
+        //particleSwimmerTest();
+        
+        System.setProperty("JNP_DATA","/Users/gavalian/Work/DataSpace/JNP_DATA");
+        ParticleSwimmer swimmer = new ParticleSwimmer();
+        
     }
 
 }

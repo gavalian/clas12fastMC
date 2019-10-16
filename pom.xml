@@ -14,6 +14,12 @@
             <version>1.1-SNAPSHOT</version>
         </dependency>
 
+	<dependency>
+          <groupId>org.jlab</groupId>
+          <artifactId>groot</artifactId>
+          <version>2.3.0-SNAPSHOT</version>
+	</dependency>
+	      
         <dependency>
             <groupId>org.jlab.jnp</groupId>
             <artifactId>jnp-physics</artifactId>

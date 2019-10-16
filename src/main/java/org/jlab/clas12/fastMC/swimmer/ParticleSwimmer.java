@@ -6,6 +6,8 @@
 package org.jlab.clas12.fastMC.swimmer;
 
 import cnuphys.magfield.CompositeField;
+import cnuphys.magfield.MagneticFieldInitializationException;
+import cnuphys.magfield.MagneticFields;
 import cnuphys.magfield.Solenoid;
 import cnuphys.magfield.Torus;
 import cnuphys.rk4.RungeKuttaException;
@@ -15,6 +17,9 @@ import cnuphys.swim.SwimTrajectory;
 import cnuphys.swim.Swimmer;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jlab.clas12.fastMC.tests.SwimmerTest;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.physics.Particle;
 
@@ -26,19 +31,51 @@ import org.jlab.jnp.physics.Particle;
 public class ParticleSwimmer {
     
     private  CompositeField compositeField;
+    private  MagneticFields mf;
+    
     private static final double rmax = 8.0;
     private static final double maxPathLength = 12.5;
     private static final double hdata[] = new double[3];
     private  Swimmer swimmer = null;
     
     public ParticleSwimmer(){
-        this.initFiled(-1.0, 1.0);
-        swimmer = new Swimmer(this.compositeField);
+        //this.initFiled(-1.0, 1.0);
+        this.initMagneticField(-1.0, 1.0);
+        swimmer = new Swimmer();
     }
     
     public ParticleSwimmer(double torusScale, double solenoidScale){
         this.initFiled(torusScale, solenoidScale);
+        if(compositeField == null){
+            System.out.println(" NULL FIELD");
+        } else {
+            System.out.println(" NOT A NULL FIELD");
+        }
         swimmer = new Swimmer(this.compositeField);
+    }
+    
+    
+    private void initMagneticField(Double torusScale, Double solenoidScale){
+        String jnpDataDirectory = System.getenv("JNP_DATA");
+         if(jnpDataDirectory==null){
+             jnpDataDirectory = System.getProperty("JNP_DATA");
+         }
+         
+         if(jnpDataDirectory==null){
+             System.out.println("[ParticleSwimmer] : Oooops, this doesn't look rigth......");
+             System.out.println("[ParticleSwimmer] : environment JNP_DATA is not set. no fileds will be loaded.");
+             System.out.println("[ParticleSwimmer] : We are looking for two files to be present on your system.");
+             System.out.println("[ParticleSwimmer] : Torus    : $JNP_DATA/etc/data/magfield/clas12-fieldmap-torus.dat");
+             System.out.println("[ParticleSwimmer] : Solenoid : $JNP_DATA/etc/data/magfield/clas12-fieldmap-solenoid.dat");
+             System.out.println("\n\n");
+         }
+         
+         mf = MagneticFields.getInstance();
+         try {
+             mf.initializeMagneticFields(jnpDataDirectory + "/etc/data/magfield", "clas12-fieldmap-torus.dat", "clas12-fieldmap-solenoid.dat");
+         } catch (FileNotFoundException | MagneticFieldInitializationException ex) {
+             Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
+         }        
     }
     /**
      * initializes the magnetic field. it should be located in the COATJAVA
@@ -92,19 +129,25 @@ public class ParticleSwimmer {
          		
          compositeField = new CompositeField();
          
+         if (solenoid != null) {
+             solenoid.setScaleFactor(solenoidScale);
+             System.out.println(" Max filed = " + solenoid.getMaxFieldMagnitude());
+             System.out.println("Is solenoid zero field: " + solenoid.isZeroField());
+             compositeField.add(solenoid);
+             System.out.println("is zero field " + compositeField.isZeroField());
+         }
+         
          if (torus != null) {             
              torus.setScaleFactor(torusScale);
+             System.out.println(" Max filed = " + torus.getMaxFieldMagnitude());
              System.out.println("Is torus zero field: " + torus.isZeroField());
              compositeField.add(torus);
              System.out.println("is zero field " + compositeField.isZeroField());
          }
          
-         if (solenoid != null) {
-             solenoid.setScaleFactor(solenoidScale);
-             System.out.println("Is solenoid zero field: " + solenoid.isZeroField());
-             compositeField.add(solenoid);
-             System.out.println("is zero field " + compositeField.isZeroField());
-         }
+         
+         System.out.println ( "  SCALE FACTOR = " + compositeField.getScaleFactor()
+         + "  max field = " + compositeField.getMaxFieldMagnitude());
     }
     
     /**
@@ -134,6 +177,10 @@ public class ParticleSwimmer {
         // step size in m
         double stepSize = 5e-4; // m
         int  charge     = part.charge();
+        //System.out.println("CHARGE = " + charge);
+        float data[] = new float[3];        
+        swimmer.getProbe().field(0.5f,0.5f,0.5f, data);
+        System.out.println(" FILED = " + data[0] + " " + data[1] + "  " + data[2]);
         try {
             /*
             int nstep = swimmer.swim(charge, 
@@ -148,6 +195,8 @@ public class ParticleSwimmer {
                                         Math.toDegrees(part.vector().phi()),
                                         stopper, maxPathLength, stepSize,
 					Swimmer.CLAS_Tolerance, hdata);
+                        
+                        
             Path3D  particlePath = new Path3D();
             
             for(int loop = 0; loop < traj.size(); loop++){
@@ -162,9 +211,9 @@ public class ParticleSwimmer {
             //printSummary("\nresult from adaptive stepsize method with errvect",
             //        nstep, momentum, lastY, hdata);
             
-        } catch (RungeKuttaException e) {
-            e.printStackTrace();
-        }
+       } catch (RungeKuttaException e) {
+           e.printStackTrace();
+       }
         return null;
     }
 }
