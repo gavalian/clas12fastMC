@@ -93,13 +93,17 @@ public class ParticleSwimmer {
          compositeField = new CompositeField();
          
          if (torus != null) {             
-             torus.setScaleFactor(torusScale);             
+             torus.setScaleFactor(torusScale);
+             System.out.println("Is torus zero field: " + torus.isZeroField());
              compositeField.add(torus);
+             System.out.println("is zero field " + compositeField.isZeroField());
          }
          
          if (solenoid != null) {
-             solenoid.setScaleFactor(solenoidScale);             
-             compositeField.add(solenoid);             
+             solenoid.setScaleFactor(solenoidScale);
+             System.out.println("Is solenoid zero field: " + solenoid.isZeroField());
+             compositeField.add(solenoid);
+             System.out.println("is zero field " + compositeField.isZeroField());
          }
     }
     
