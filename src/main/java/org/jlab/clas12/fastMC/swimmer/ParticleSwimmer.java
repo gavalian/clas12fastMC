@@ -105,6 +105,8 @@ public class ParticleSwimmer {
              compositeField.add(solenoid);
              System.out.println("is zero field " + compositeField.isZeroField());
          }
+
+        System.out.println(compositeField.getMaxFieldMagnitude());
     }
     
     /**
