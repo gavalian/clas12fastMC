@@ -16,6 +16,7 @@ import org.jlab.jnp.physics.Particle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.jlab.jnp.physics.PhysicsEvent;
 
 /**
  *
@@ -60,5 +61,15 @@ public class Clas12FastMC {
         return true;
     }
     
-    
+    public PhysicsEvent processEvent(PhysicsEvent physEvent){
+        PhysicsEvent fastMCEvent = new PhysicsEvent();
+        int count = physEvent.count();
+        for(int i = 0; i < count; i++){
+            Particle p = physEvent.getParticle(i);
+            if(this.validHit(p)==true){
+                fastMCEvent.addParticle(p);
+            }
+        }
+        return fastMCEvent;
+    }
 }
