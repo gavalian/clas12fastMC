@@ -6,6 +6,7 @@ import org.jlab.clas12.fastMC.detectors.ECDetector;
 import org.jlab.clas12.fastMC.detectors.FTDetector;
 import org.jlab.clas12.fastMC.detectors.FToFDetector;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
+import org.jlab.clas12.fastMC.tools.FileFinder;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 import org.jlab.jnp.geom.prim.Path3D;
@@ -16,7 +17,6 @@ import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.ParticleList;
 import org.jlab.jnp.physics.PhysicsEvent;
 import org.jlab.jnp.reader.DataManager;
-import org.jlab.jnp.reader.LundReader;
 
 import java.util.List;
 

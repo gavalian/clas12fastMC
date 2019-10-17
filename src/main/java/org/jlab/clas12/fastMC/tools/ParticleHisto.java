@@ -19,8 +19,11 @@ public class ParticleHisto {
     
     public ParticleHisto(){
         histP = new H1F("histP",100,0.0,10.0);
+        histP.setTitle("Momentum (GeV)");
         histTheta = new H1F("histTheta",100,0.0,180.0);
+        histTheta.setTitle("Theta (deg)");
         histPhi = new H1F("histTheta",180,-180.0,180.0);
+        histPhi.setTitle("Phi (deg)");
     }
     
     public void fill(Particle p){

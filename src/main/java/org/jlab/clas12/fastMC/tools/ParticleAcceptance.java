@@ -21,7 +21,15 @@ public class ParticleAcceptance {
     public ParticleAcceptance(){
         
     }
-    
+
+    public ParticleHisto getHistGenerated() {
+        return histGenerated;
+    }
+
+    public ParticleHisto getHistReconstructed() {
+        return histReconstructed;
+    }
+
     public void setMatchCut(double cut){ matchCut = cut; }
     
     public void acceptance(int pid, PhysicsEvent genEvent, PhysicsEvent recEvent){

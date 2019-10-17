@@ -60,13 +60,35 @@ public class Clas12FastMC {
         }
         return true;
     }
+
+    public boolean validHitByPid(Particle particle){
+        Path3D particlePath = particleSwimmer.getParticlePath(particle);
+        boolean validHit = false;
+        switch (particle.pid()){
+            case 11:
+                if (detectors.get(2).validHit(particlePath) || detectors.get(3).validHit(particlePath)){
+                    validHit = true;
+                }
+                break;
+            case 22:
+                if(detectors.get(1).validHit(particlePath)){
+                    validHit = true;
+                }
+            default:
+                if (detectors.get(0).validHit(particlePath)){
+                    validHit = true;
+                }
+                break;
+        }
+        return validHit;
+    }
     
     public PhysicsEvent processEvent(PhysicsEvent physEvent){
         PhysicsEvent fastMCEvent = new PhysicsEvent();
         int count = physEvent.count();
         for(int i = 0; i < count; i++){
             Particle p = physEvent.getParticle(i);
-            if(this.validHit(p)==true){
+            if(this.validHitByPid(p)){
                 fastMCEvent.addParticle(p);
             }
         }

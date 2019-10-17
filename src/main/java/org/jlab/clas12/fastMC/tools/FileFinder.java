@@ -1,4 +1,4 @@
-package org.jlab.clas12.fastMC.tests;
+package org.jlab.clas12.fastMC.tools;
 
 import org.jlab.jnp.utils.file.FileUtils;
 

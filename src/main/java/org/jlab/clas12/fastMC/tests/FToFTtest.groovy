@@ -2,8 +2,8 @@ package org.jlab.clas12.fastMC.tests
 
 import org.jlab.clas12.fastMC.base.DetectorHit
 import org.jlab.clas12.fastMC.detectors.ECDetector
-import org.jlab.clas12.fastMC.detectors.FToFDetector
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer
+import org.jlab.clas12.fastMC.tools.FileFinder
 import org.jlab.groot.data.H2F
 import org.jlab.groot.ui.TCanvas
 import org.jlab.jnp.geom.prim.Path3D
