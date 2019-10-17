@@ -131,23 +131,17 @@ public class ParticleSwimmer {
          
          if (solenoid != null) {
              solenoid.setScaleFactor(solenoidScale);
-             System.out.println(" Max filed = " + solenoid.getMaxFieldMagnitude());
-             System.out.println("Is solenoid zero field: " + solenoid.isZeroField());
              compositeField.add(solenoid);
              System.out.println("is zero field " + compositeField.isZeroField());
          }
          
          if (torus != null) {             
              torus.setScaleFactor(torusScale);
-             System.out.println(" Max filed = " + torus.getMaxFieldMagnitude());
-             System.out.println("Is torus zero field: " + torus.isZeroField());
              compositeField.add(torus);
-             System.out.println("is zero field " + compositeField.isZeroField());
          }
          
          
-         System.out.println ( "  SCALE FACTOR = " + compositeField.getScaleFactor()
-         + "  max field = " + compositeField.getMaxFieldMagnitude());
+         System.out.println ( "  SCALE FACTOR = " + compositeField.getScaleFactor());
     }
     
     /**
@@ -179,8 +173,8 @@ public class ParticleSwimmer {
         int  charge     = part.charge();
         //System.out.println("CHARGE = " + charge);
         float data[] = new float[3];        
-        swimmer.getProbe().field(0.5f,0.5f,0.5f, data);
-        System.out.println(" FILED = " + data[0] + " " + data[1] + "  " + data[2]);
+//        swimmer.getProbe().field(0.5f,0.5f,0.5f, data);
+//        System.out.println(" FILED = " + data[0] + " " + data[1] + "  " + data[2]);
         try {
             /*
             int nstep = swimmer.swim(charge, 
