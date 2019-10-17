@@ -182,6 +182,8 @@ public class Debug {
             reader.open(dataFile);
 
             Bank particles = new Bank(reader.getSchemaFactory().getSchema("mc::event"));
+            Bank partrec   = new Bank(reader.getSchemaFactory().getSchema("rec::particle"));
+
             Event event = new Event();
 
             while (reader.hasNext()) {
@@ -189,7 +191,8 @@ public class Debug {
                 reader.nextEvent(event);
                 event.read(particles);
 
-                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, particles);
+                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, partrec);
+                PhysicsEvent gemcEvent = DataManager.getPhysicsEvent(10.6, particles);
 
                 ParticleList particleList = physicsEvent.getParticleList();
                 for (int i = 0; i < particleList.count(); i++) {
