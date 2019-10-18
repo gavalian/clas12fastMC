@@ -34,7 +34,7 @@ public class Clas12FastMC {
         this.addDetector(new ECDetector());
         this.addDetector(new FToFDetector());
         this.addDetector(new FTDetector());
-        initSwimmer(-1.0,1.0);
+        initSwimmer(-1.0,-1.0);
     }
     
     public Clas12FastMC(double torusField, double solenoidField){
@@ -66,12 +66,13 @@ public class Clas12FastMC {
         boolean validHit = false;
         switch (particle.pid()){
             case 11:
-                if (detectors.get(2).validHit(particlePath) || detectors.get(3).validHit(particlePath)){
+                if ((detectors.get(0).validHit(particlePath) && detectors.get(2).validHit(particlePath)) || detectors.get(3).validHit(particlePath)){
+//                if (detectors.get(3).validHit(particlePath)){
                     validHit = true;
                 }
                 break;
             case 22:
-                if(detectors.get(1).validHit(particlePath)){
+                if(detectors.get(1).validHit(particlePath) && particle.p() >=1 && particle.p() <= 9 && Math.toDegrees(particle.theta())>= 10 && Math.toDegrees(particle.theta())<= 35){
                     validHit = true;
                 }
             default:

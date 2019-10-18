@@ -5,10 +5,12 @@ import org.jlab.clas12.fastMC.core.Clas12FastMC;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.clas12.fastMC.tools.EventAcceptance;
 import org.jlab.clas12.fastMC.tools.FileFinder;
+import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.io.HipoReader;
+import org.jlab.jnp.physics.EventFilter;
 import org.jlab.jnp.physics.PhysicsEvent;
 import org.jlab.jnp.reader.DataManager;
 
@@ -20,12 +22,15 @@ public class GEMCComparison {
 
     public static void main(String[] args) {
 
+        H2F ThetaPhi = new H2F("thetaphi", 90, 0, 180, 180, -180, 180);
+
         List<String> dataFiles = FileFinder.getFiles("/home/tylerviducic/research/rho/clas12/data/*");
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
 
         EventAcceptance eventAcceptance = new EventAcceptance();
         Clas12FastMC clas12FastMC = new Clas12FastMC();
         int eventCounter = 0;
+        EventFilter filter = new EventFilter("11:X+:X-:Xn");
 
         for(String dataFile: dataFiles){
             System.out.println(dataFile);
@@ -43,79 +48,56 @@ public class GEMCComparison {
 
                 eventCounter++;
                 System.out.println(eventCounter);
-                PhysicsEvent recEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
                 PhysicsEvent mcEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
+                PhysicsEvent recEvent = DataManager.getPhysicsEvent(10.6, recParticle);
                 PhysicsEvent fastmcEvent = clas12FastMC.processEvent(mcEvent);
 
-                eventAcceptance.acceptanceGemc(mcEvent, recEvent);
-                eventAcceptance.acceptanceFastmc(mcEvent, fastmcEvent);
+                System.out.println("-----------------------------------------------------------------------");
+                System.out.println(mcEvent.toLundString());
+                System.out.println(recEvent.toLundString());
+                System.out.println(fastmcEvent.toLundString());
+                if(filter.isValid(recEvent) && filter.isValid(fastmcEvent)) {
+                    eventAcceptance.acceptanceGemc(mcEvent, recEvent);
+                    eventAcceptance.acceptanceFastmc(mcEvent, fastmcEvent);
+                }
             }
         }
 
-        TCanvas c1 = new TCanvas("c1", 1000, 1500);
-        c1.divide(2, 3);
-        TCanvas c2 = new TCanvas("c2", 1000, 1500);
-        c2.divide(2, 3);
+        TCanvas c1 = new TCanvas("fastMC electron", 1000, 1500);
+        c1.divide(2, 2);
+        TCanvas c2 = new TCanvas("gemc electron", 1000, 1500);
+        c2.divide(2, 2);
 
-        c1.cd(0);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistGenerated().getP());
-        c1.cd(1);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistReconstructed().getP());
+        TCanvas c3 = new TCanvas("fastMC photon", 1000, 1500);
+        c3.divide(2, 2);
+        TCanvas c4 = new TCanvas("gemc photon", 1000, 1500);
+        c4.divide(2, 2);
 
-        c1.cd(2);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistGenerated().getTheta());
-        c1.cd(3);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistReconstructed().getTheta());
+        TCanvas c5 = new TCanvas("fastMC proton", 1000, 1500);
+        c5.divide(2, 2);
+        TCanvas c6 = new TCanvas("gemc proton", 1000, 1500);
+        c6.divide(2, 2);
 
-        c1.cd(4);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistGenerated().getPhi());
-        c1.cd(5);
-        c1.draw(eventAcceptance.getFastmcAcceptance().get(11).getHistReconstructed().getPhi());
+        TCanvas c7 = new TCanvas("fastMC pi+", 1000, 1500);
+        c7.divide(2, 2);
+        TCanvas c8 = new TCanvas("gemc pi+", 1000, 1500);
+        c8.divide(2, 2);
 
-        c2.cd(0);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistGenerated().getP());
-        c2.cd(1);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistReconstructed().getP());
+        TCanvas c9 = new TCanvas("fastMC pi-", 1000, 1500);
+        c9.divide(2, 2);
+        TCanvas c10 = new TCanvas("gemc pi-", 1000, 1500);
+        c10.divide(2, 2);
 
-        c2.cd(2);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistGenerated().getTheta());
-        c2.cd(3);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistReconstructed().getTheta());
+        eventAcceptance.getFastmcAcceptance().get(11).getHistReconstructed().draw(c1);
+        eventAcceptance.getGemcAcceptance().get(11).getHistReconstructed().draw(c2);
+        eventAcceptance.getFastmcAcceptance().get(22).getHistReconstructed().draw(c3);
+        eventAcceptance.getGemcAcceptance().get(22).getHistReconstructed().draw(c4);
+        eventAcceptance.getFastmcAcceptance().get(2212).getHistReconstructed().draw(c5);
+        eventAcceptance.getGemcAcceptance().get(2212).getHistReconstructed().draw(c6);
+        eventAcceptance.getFastmcAcceptance().get(211).getHistReconstructed().draw(c7);
+        eventAcceptance.getGemcAcceptance().get(211).getHistReconstructed().draw(c8);
+        eventAcceptance.getFastmcAcceptance().get(-211).getHistReconstructed().draw(c9);
+        eventAcceptance.getGemcAcceptance().get(-211).getHistReconstructed().draw(c10);
 
-        c2.cd(4);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistGenerated().getPhi());
-        c2.cd(5);
-        c2.draw(eventAcceptance.getGemcAcceptance().get(11).getHistReconstructed().getPhi());
-
-
-//        c1.cd(0);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistGenerated().getP());
-//        c1.cd(1);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistReconstructed().getP());
-//
-//        c1.cd(2);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistGenerated().getTheta());
-//        c1.cd(3);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistReconstructed().getTheta());
-//
-//        c1.cd(4);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistGenerated().getPhi());
-//        c1.cd(5);
-//        c1.draw(eventAcceptance.getFastmcAcceptance().get(2212).getHistReconstructed().getPhi());
-//
-//        c2.cd(0);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistGenerated().getP());
-//        c2.cd(1);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistReconstructed().getP());
-//
-//        c2.cd(2);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistGenerated().getTheta());
-//        c2.cd(3);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistReconstructed().getTheta());
-//
-//        c2.cd(4);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistGenerated().getPhi());
-//        c2.cd(5);
-//        c2.draw(eventAcceptance.getGemcAcceptance().get(2212).getHistReconstructed().getPhi());
     }
 }
