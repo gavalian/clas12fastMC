@@ -33,8 +33,8 @@ public class CVTDetector extends Detector {
 
     @Override
     public boolean validHit(Path3D path) {
-        int nhits = getHits(path).size();
-        System.out.println(nhits);
+//        int nhits = getHits(path).size();
+//        System.out.println(nhits);
         return getHits(path).size() >= 3;
     }
 

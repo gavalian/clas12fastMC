@@ -231,7 +231,7 @@ public class Debug {
         //String dataFile = "";
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
 
-        H2F hSquare = new H2F("hSquare", "hSquare", 50, -50, 50, 500, -50, 50);
+            H2F hSquare = new H2F("hSquare", "hSquare", 50, -50, 50, 500, -50, 50);
         TCanvas c1 = new TCanvas("c1", 500, 500);
 
         CVTDetector cvtDetector = new CVTDetector();
@@ -264,12 +264,35 @@ public class Debug {
                         }
                     }
                 }
-                if (eventCounter > 400000) {
+                if (eventCounter > 100000) {
                     break;
                 }
             }
         }
         c1.draw(hSquare);
+    }
+
+    private static void cvtTest2(){
+
+        CVTDetector cvtDetector = new CVTDetector();
+        ParticleSwimmer swimmer = new ParticleSwimmer();
+        int hits = 0;
+
+        H2F thetaPhi = new H2F("thetaPhi", 90, 0, 180, 180, -180, 180);
+        TCanvas c1 = new TCanvas("c1", 500, 500);
+
+        for(int i = 0; i < 100000; i++){
+            System.out.println(i);
+            Particle proton = Particle.random(2212, 1.0, 3.0, Math.toRadians(35.0), Math.toRadians(170.0), Math.toRadians(-180.0), Math.toRadians(180.0));
+            Path3D protonPath = swimmer.getParticlePath(proton);
+            if(cvtDetector.validHit(protonPath)){
+                hits++;
+                thetaPhi.fill(Math.toDegrees(proton.theta()), Math.toDegrees(proton.phi()));
+            }
+        }
+        System.out.println("Number of hits: " + hits);
+        System.out.println("Percentage of particles detected: " + (((double)hits/100000.0)*100.0));
+        c1.draw(thetaPhi);
     }
 
     public static void main(String[] args) {
@@ -279,7 +302,7 @@ public class Debug {
 //        ecTest();
 //        ftofTest();;
 //        ftTest();
-        cvtTest();
+        cvtTest2();
     }
 }
 

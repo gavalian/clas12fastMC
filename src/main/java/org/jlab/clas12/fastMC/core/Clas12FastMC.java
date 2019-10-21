@@ -9,10 +9,11 @@ import org.jlab.clas12.fastMC.base.Detector;
 import org.jlab.clas12.fastMC.detectors.*;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.jnp.geom.prim.Path3D;
-import org.jlab.jnp.physics.Particle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.PhysicsEvent;
 
 /**
