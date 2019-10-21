@@ -6,10 +6,7 @@
 package org.jlab.clas12.fastMC.core;
 
 import org.jlab.clas12.fastMC.base.Detector;
-import org.jlab.clas12.fastMC.detectors.DCDetector;
-import org.jlab.clas12.fastMC.detectors.ECDetector;
-import org.jlab.clas12.fastMC.detectors.FTDetector;
-import org.jlab.clas12.fastMC.detectors.FToFDetector;
+import org.jlab.clas12.fastMC.detectors.*;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.physics.Particle;
@@ -34,6 +31,7 @@ public class Clas12FastMC {
         this.addDetector(new ECDetector());
         this.addDetector(new FToFDetector());
         this.addDetector(new FTDetector());
+        this.addDetector(new CVTDetector());
         initSwimmer(-1.0,-1.0);
     }
     
@@ -66,7 +64,7 @@ public class Clas12FastMC {
         boolean validHit = false;
         switch (particle.pid()){
             case 11:
-                if ((detectors.get(0).validHit(particlePath) && detectors.get(2).validHit(particlePath)) || detectors.get(3).validHit(particlePath)){
+                if ((detectors.get(0).validHit(particlePath) && detectors.get(2).validHit(particlePath)) || detectors.get(3).validHit(particlePath) || detectors.get(4).validHit(particlePath)){
 //                if (detectors.get(3).validHit(particlePath)){
                     validHit = true;
                 }
@@ -76,7 +74,7 @@ public class Clas12FastMC {
                     validHit = true;
                 }
             default:
-                if (detectors.get(0).validHit(particlePath)){
+                if (detectors.get(0).validHit(particlePath) || detectors.get(4).validHit(particlePath)){
                     validHit = true;
                 }
                 break;

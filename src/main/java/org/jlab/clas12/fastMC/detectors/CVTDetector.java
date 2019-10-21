@@ -9,6 +9,7 @@ import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.geom.prim.Shape3D;
 import org.jlab.jnp.geom.prim.Triangle3D;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CVTDetector extends Detector {
@@ -23,12 +24,16 @@ public class CVTDetector extends Detector {
 
     @Override
     public List<DetectorHit> getHits(Path3D path) {
-        return null;
+        List<DetectorHit> hits;
+        ArrayList<Point3D> intersectionPoints;
+        intersectionPoints = this.intersection(path);
+        hits = points2Hits(intersectionPoints);
+        return hits;
     }
 
     @Override
     public boolean validHit(Path3D path) {
-        return false;
+        return getHits(path).size() >= 3;
     }
 
     @Override
@@ -37,11 +42,12 @@ public class CVTDetector extends Detector {
             int numRegions = parameters.getNumRegions(i);
             double zDistance = parameters.getZDistance(i);
             double yDistance = parameters.getYDistance(i);
+            double theta = Math.toRadians(parameters.getTheta(i));
             for(int j = 0; j < numRegions; j++){
                 Shape3D component = this.createComponent();
-                component.translateXYZ(0,0, zDistance);
-                component.translateXYZ(0, yDistance, 0);
-                component.rotateY(Math.toRadians(360.0/j));
+                component.translateXYZ(0,yDistance, zDistance);
+                component.rotateZ(theta * j);
+                this.addComponent(component);
             }
         }
     }

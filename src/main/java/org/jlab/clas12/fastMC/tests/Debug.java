@@ -1,10 +1,8 @@
 package org.jlab.clas12.fastMC.tests;
 
+import org.jlab.clas12.fastMC.base.Detector;
 import org.jlab.clas12.fastMC.base.DetectorHit;
-import org.jlab.clas12.fastMC.detectors.DCDetector;
-import org.jlab.clas12.fastMC.detectors.ECDetector;
-import org.jlab.clas12.fastMC.detectors.FTDetector;
-import org.jlab.clas12.fastMC.detectors.FToFDetector;
+import org.jlab.clas12.fastMC.detectors.*;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.clas12.fastMC.tools.FileFinder;
 import org.jlab.groot.data.H2F;
@@ -182,8 +180,6 @@ public class Debug {
             reader.open(dataFile);
 
             Bank particles = new Bank(reader.getSchemaFactory().getSchema("mc::event"));
-            Bank partrec   = new Bank(reader.getSchemaFactory().getSchema("rec::particle"));
-
             Event event = new Event();
 
             while (reader.hasNext()) {
@@ -191,8 +187,7 @@ public class Debug {
                 reader.nextEvent(event);
                 event.read(particles);
 
-                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, partrec);
-                PhysicsEvent gemcEvent = DataManager.getPhysicsEvent(10.6, particles);
+                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, particles);
 
                 ParticleList particleList = physicsEvent.getParticleList();
                 for (int i = 0; i < particleList.count(); i++) {
@@ -231,14 +226,60 @@ public class Debug {
         negchargedPath.show();
     }
 
+    private static void cvtTest(){
+        List<String> dataFiles = FileFinder.getFiles("/media/tylerviducic/Elements/clas12/mcdata/rho_mc/*.hipo");
+        //String dataFile = "";
+        System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
+
+        H2F hSquare = new H2F("hSquare", "hSquare", 50, -50, 50, 500, -50, 50);
+        TCanvas c1 = new TCanvas("c1", 500, 500);
+
+        CVTDetector cvtDetector = new CVTDetector();
+        ParticleSwimmer swimmer = new ParticleSwimmer();
+
+        int eventCounter = 0;
+
+        for(String dataFile: dataFiles) {
+            HipoReader reader = new HipoReader();
+            reader.open(dataFile);
+
+            Bank particles = new Bank(reader.getSchemaFactory().getSchema("mc::event"));
+            Event event = new Event();
+
+            while (reader.hasNext()) {
+                eventCounter++;
+                System.out.println(eventCounter);
+                reader.nextEvent(event);
+                event.read(particles);
+
+                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, particles);
+
+                ParticleList particleList = physicsEvent.getParticleList();
+                for (int i = 0; i < particleList.count(); i++) {
+                    Path3D particlePath = swimmer.getParticlePath(particleList.get(i));
+                    List<DetectorHit> hits = cvtDetector.getHits(particlePath);
+                    if (hits.size() > 0) {
+                        for (DetectorHit hit : hits) {
+                            hSquare.fill(hit.getHitPosition().x(), hit.getHitPosition().y());
+                        }
+                    }
+                }
+                if (eventCounter > 100000) {
+                    break;
+                }
+            }
+        }
+        c1.draw(hSquare);
+    }
+
     public static void main(String[] args) {
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
 //        particleSwimmerTest();
-        dcTest();
-        ecTest();
-        ftofTest();;
-        ftTest();
+//        dcTest();
+//        ecTest();
+//        ftofTest();;
+//        ftTest();
+        cvtTest();
     }
-
 }
 
