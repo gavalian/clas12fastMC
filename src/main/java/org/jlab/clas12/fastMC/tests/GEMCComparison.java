@@ -6,6 +6,7 @@ import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.clas12.fastMC.tools.EventAcceptance;
 import org.jlab.clas12.fastMC.tools.FileFinder;
 import org.jlab.groot.data.H2F;
+import org.jlab.groot.data.TDirectory;
 import org.jlab.groot.ui.TCanvas;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
@@ -22,9 +23,8 @@ public class GEMCComparison {
 
     public static void main(String[] args) {
 
-        H2F ThetaPhi = new H2F("thetaphi", 90, 0, 180, 180, -180, 180);
-
-        List<String> dataFiles = FileFinder.getFiles("/home/tylerviducic/research/rho/clas12/data/*");
+//        List<String> dataFiles = FileFinder.getFiles("/home/tylerviducic/research/rho/clas12/data/*");
+        List<String> dataFiles = FileFinder.getFiles("/media/tylerviducic/Elements/clas12/mcdata/fastMC/*");
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
 
         EventAcceptance eventAcceptance = new EventAcceptance();

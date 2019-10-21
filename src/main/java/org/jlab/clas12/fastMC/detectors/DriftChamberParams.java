@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class DriftChamberParams {
 
-    Map<Integer, HashMap<String, Double>> driftChamberParamMap = this.initMap();
+    private Map<Integer, HashMap<String, Double>> driftChamberParamMap = this.initMap();
 
     private Map initMap(){
         HashMap<Integer, HashMap<String, Double>> paramMap = new HashMap<>();
