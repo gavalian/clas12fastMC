@@ -264,7 +264,7 @@ public class Debug {
                         }
                     }
                 }
-                if (eventCounter > 100000) {
+                if (eventCounter > 400000) {
                     break;
                 }
             }

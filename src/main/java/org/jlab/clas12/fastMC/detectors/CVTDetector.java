@@ -33,6 +33,8 @@ public class CVTDetector extends Detector {
 
     @Override
     public boolean validHit(Path3D path) {
+        int nhits = getHits(path).size();
+        System.out.println(nhits);
         return getHits(path).size() >= 3;
     }
 
@@ -42,7 +44,7 @@ public class CVTDetector extends Detector {
             int numRegions = parameters.getNumRegions(i);
             double zDistance = parameters.getZDistance(i);
             double yDistance = parameters.getYDistance(i);
-            double theta = Math.toRadians(parameters.getTheta(i));
+            double theta = Math.toRadians(360.0/numRegions);
             for(int j = 0; j < numRegions; j++){
                 Shape3D component = this.createComponent();
                 component.translateXYZ(0,yDistance, zDistance);

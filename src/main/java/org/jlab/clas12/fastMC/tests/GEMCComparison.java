@@ -46,16 +46,16 @@ public class GEMCComparison {
                 event.read(recParticle);
                 event.read(mcParticle);
 
-                eventCounter++;
-                System.out.println(eventCounter);
+//                eventCounter++;
+//                System.out.println(eventCounter);
                 PhysicsEvent mcEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
                 PhysicsEvent recEvent = DataManager.getPhysicsEvent(10.6, recParticle);
                 PhysicsEvent fastmcEvent = clas12FastMC.processEvent(mcEvent);
 
-                System.out.println("-----------------------------------------------------------------------");
-                System.out.println(mcEvent.toLundString());
-                System.out.println(recEvent.toLundString());
-                System.out.println(fastmcEvent.toLundString());
+//                System.out.println("-----------------------------------------------------------------------");
+//                System.out.println(mcEvent.toLundString());
+//                System.out.println(recEvent.toLundString());
+//                System.out.println(fastmcEvent.toLundString());
                 if(filter.isValid(recEvent) && filter.isValid(fastmcEvent)) {
                     eventAcceptance.acceptanceGemc(mcEvent, recEvent);
                     eventAcceptance.acceptanceFastmc(mcEvent, fastmcEvent);
