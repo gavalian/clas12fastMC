@@ -6,16 +6,14 @@
 package org.jlab.clas12.fastMC.core;
 
 import org.jlab.clas12.fastMC.base.Detector;
-import org.jlab.clas12.fastMC.detectors.DCDetector;
-import org.jlab.clas12.fastMC.detectors.ECDetector;
-import org.jlab.clas12.fastMC.detectors.FTDetector;
-import org.jlab.clas12.fastMC.detectors.FToFDetector;
+import org.jlab.clas12.fastMC.detectors.*;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.jnp.geom.prim.Path3D;
-import org.jlab.jnp.physics.Particle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.PhysicsEvent;
 
 /**
@@ -34,7 +32,8 @@ public class Clas12FastMC {
         this.addDetector(new ECDetector());
         this.addDetector(new FToFDetector());
         this.addDetector(new FTDetector());
-        initSwimmer(-1.0,1.0);
+        this.addDetector(new CVTDetector());
+        initSwimmer(-1.0,-1.0);
     }
     
     public Clas12FastMC(double torusField, double solenoidField){
@@ -60,13 +59,40 @@ public class Clas12FastMC {
         }
         return true;
     }
+
+    public boolean validHitByPid(Particle particle){
+        Path3D particlePath = particleSwimmer.getParticlePath(particle);
+        boolean validHit = false;
+        switch (particle.pid()){
+            case 11:
+                if ((detectors.get(0).validHit(particlePath) && detectors.get(2).validHit(particlePath)) || detectors.get(3).validHit(particlePath) || detectors.get(4).validHit(particlePath)){
+//                if (detectors.get(3).validHit(particlePath)){
+                    validHit = true;
+                }
+                break;
+            case 22:
+                if(detectors.get(1).validHit(particlePath) && particle.p() >=1 && particle.p() <= 9 && Math.toDegrees(particle.theta())>= 10 && Math.toDegrees(particle.theta())<= 35){
+                    validHit = true;
+                    if(detectors.get(4).validHit(particlePath)){
+                        validHit = false;
+                    }
+                }
+            default:
+                if (detectors.get(0).validHit(particlePath) || detectors.get(4).validHit(particlePath)){
+                    validHit = true;
+                }
+                break;
+        }
+        return validHit;
+    }
     
     public PhysicsEvent processEvent(PhysicsEvent physEvent){
         PhysicsEvent fastMCEvent = new PhysicsEvent();
         int count = physEvent.count();
         for(int i = 0; i < count; i++){
             Particle p = physEvent.getParticle(i);
-            if(this.validHit(p)==true){
+            if(this.validHitByPid(p)){
+            //if(this.validHit(p)){
                 fastMCEvent.addParticle(p);
             }
         }

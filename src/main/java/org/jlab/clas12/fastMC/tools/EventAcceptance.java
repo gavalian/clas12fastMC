@@ -43,6 +43,13 @@ public class EventAcceptance {
             entry.getValue().acceptance(entry.getKey(), genEvent, recEvent);
         }
     }
-    
-    
+
+
+    public Map<Integer, ParticleAcceptance> getGemcAcceptance() {
+        return gemcAcceptance;
+    }
+
+    public Map<Integer, ParticleAcceptance> getFastmcAcceptance() {
+        return fastmcAcceptance;
+    }
 }
