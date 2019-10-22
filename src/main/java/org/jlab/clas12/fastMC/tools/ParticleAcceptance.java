@@ -50,6 +50,7 @@ public class ParticleAcceptance {
     
     public void acceptance(Particle p , PhysicsEvent recEvent){
         Particle match = recEvent.getBestMatch(p, p.charge());
+        System.out.println(p.pid());
         if(match.cosTheta(p)>=matchCut && match.getStatus() > 0){
             histReconstructed.fill(match);
         }
