@@ -28,10 +28,10 @@ public class Clas12FastMC {
     
     public Clas12FastMC(){
         detectors = new ArrayList<>();
-//        this.addDetector(new DCDetector());
-//        this.addDetector(new ECDetector());
-//        this.addDetector(new FToFDetector());
-//        this.addDetector(new FTDetector());
+        this.addDetector(new DCDetector());
+        this.addDetector(new ECDetector());
+        this.addDetector(new FToFDetector());
+        this.addDetector(new FTDetector());
         this.addDetector(new CVTDetector());
         initSwimmer(-1.0,-1.0);
     }
@@ -73,6 +73,9 @@ public class Clas12FastMC {
             case 22:
                 if(detectors.get(1).validHit(particlePath) && particle.p() >=1 && particle.p() <= 9 && Math.toDegrees(particle.theta())>= 10 && Math.toDegrees(particle.theta())<= 35){
                     validHit = true;
+                    if(detectors.get(4).validHit(particlePath)){
+                        validHit = false;
+                    }
                 }
             default:
                 if (detectors.get(0).validHit(particlePath) || detectors.get(4).validHit(particlePath)){
@@ -88,8 +91,8 @@ public class Clas12FastMC {
         int count = physEvent.count();
         for(int i = 0; i < count; i++){
             Particle p = physEvent.getParticle(i);
-            //if(this.validHitByPid(p)){
-            if(this.validHit(p)){
+            if(this.validHitByPid(p)){
+            //if(this.validHit(p)){
                 fastMCEvent.addParticle(p);
             }
         }

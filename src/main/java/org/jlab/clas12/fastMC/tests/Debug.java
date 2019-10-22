@@ -282,7 +282,7 @@ public class Debug {
         TCanvas c1 = new TCanvas("c1", 500, 500);
 
         for(int i = 0; i < 100000; i++){
-            System.out.println(i);
+            //System.out.println(i);
             Particle proton = Particle.random(2212, 1.0, 3.0, Math.toRadians(35.0), Math.toRadians(170.0), Math.toRadians(-180.0), Math.toRadians(180.0));
             Path3D protonPath = swimmer.getParticlePath(proton);
             if(cvtDetector.validHit(protonPath)){
