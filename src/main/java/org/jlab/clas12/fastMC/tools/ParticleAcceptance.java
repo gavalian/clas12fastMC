@@ -37,11 +37,11 @@ public class ParticleAcceptance {
         
         for(int i = 0; i < count; i++){
             Particle p = genEvent.getParticleByPid(pid, i);
-            if(pid != 211 && pid != -211){
+            if(pid != 211 && pid != -211 && p.p() >= 0.5 ){
             histGenerated.fill(p);
             this.acceptance(p, recEvent);
             }
-            else if(p.p() > 1.0) {
+            else if(p.p() >= 1.0) {
                 histGenerated.fill(p);
                 this.acceptance(p, recEvent);
             }
@@ -50,7 +50,6 @@ public class ParticleAcceptance {
     
     public void acceptance(Particle p , PhysicsEvent recEvent){
         Particle match = recEvent.getBestMatch(p, p.charge());
-        System.out.println(p.pid());
         if(match.cosTheta(p)>=matchCut && match.getStatus() > 0){
             histReconstructed.fill(match);
         }

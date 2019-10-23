@@ -52,7 +52,7 @@ public class Clas12FastMC {
         detectors.put(DetectorType.FTOF, new FToFDetector());
         detectors.put(DetectorType.FT, new FTDetector());
         detectors.put(DetectorType.CVT, new CVTDetector());
-        initSwimmer(-1.0,-1.0);
+        initSwimmer(1.0,-1.0);
     }
     
     public void setResolution(boolean flag){

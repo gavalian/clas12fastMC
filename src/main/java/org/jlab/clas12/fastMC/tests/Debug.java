@@ -2,12 +2,19 @@ package org.jlab.clas12.fastMC.tests;
 
 import org.jlab.clas12.fastMC.base.Detector;
 import org.jlab.clas12.fastMC.base.DetectorHit;
+import org.jlab.clas12.fastMC.base.DetectorRegion;
+import org.jlab.clas12.fastMC.core.Clas12FastMC;
 import org.jlab.clas12.fastMC.detectors.*;
 import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.clas12.fastMC.tools.FileFinder;
+import org.jlab.clas12.fastMC.tools.ParticleHisto;
+import org.jlab.groot.data.DataVector;
+import org.jlab.groot.data.GraphErrors;
+import org.jlab.groot.data.H1F;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
 import org.jlab.jnp.geom.prim.Path3D;
+import org.jlab.jnp.geom.prim.Point3D;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.io.HipoReader;
@@ -16,6 +23,7 @@ import org.jlab.jnp.physics.ParticleList;
 import org.jlab.jnp.physics.PhysicsEvent;
 import org.jlab.jnp.reader.DataManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.jlab.jnp.hipo4.io.HipoChain;
 
@@ -280,6 +288,78 @@ public class Debug {
         c1.draw(thetaPhi);
     }
 
+    private static void electronTest(){
+
+        System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField/");
+        String directory = "/media/tylerviducic/Elements/clas12/mcdata/fastMC";
+
+        ParticleHisto eFastHisto = new ParticleHisto();
+        ParticleHisto eGEMCHisto = new ParticleHisto();
+
+        Clas12FastMC clas12FastMC = new Clas12FastMC();
+        clas12FastMC.addConfiguration(11, DetectorRegion.TAGGER, "FT", 1);
+        clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "FTOF", 1);
+        clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "DC", 6);
+        HipoChain reader = new HipoChain();
+        reader.addDir(directory);
+        reader.open();
+
+        Event event = new Event();
+        Bank mcParticle = new Bank(reader.getSchemaFactory().getSchema("MC::Particle"));
+        Bank recParticle = new Bank(reader.getSchemaFactory().getSchema("REC::Particle"));
+
+        while (reader.hasNext()){
+            reader.nextEvent(event);
+            event.read(recParticle);
+            event.read(mcParticle);
+
+            PhysicsEvent mcEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
+            PhysicsEvent recEvent = DataManager.getPhysicsEvent(10.6, recParticle);
+            PhysicsEvent fastMCEvent = clas12FastMC.processEvent(mcEvent);
+
+            if(fastMCEvent.countByPid(11) > 0 && recEvent.countByPid(11) == 0){
+                eFastHisto.fill(fastMCEvent.getParticleByPid(11, 0));
+            }
+        }
+        TCanvas c1 = new TCanvas("c1", 500, 500);
+        c1.divide(2,2);
+        eFastHisto.draw(c1);
+    }
+
+    private static void swimmerTest(){
+        ParticleSwimmer swimmer = new ParticleSwimmer(-1, -1);
+        Particle electron = new Particle(11, 0.8, 0.9, 1.0, 0, 0, 0);
+
+        ArrayList<Double> xPoints = new ArrayList<>();
+        ArrayList<Double> yPoints = new ArrayList<>();
+        ArrayList<Double> zPoints = new ArrayList<>();
+
+        TCanvas c1 = new TCanvas("c1", 500, 500);
+
+
+        Path3D ePath = swimmer.getParticlePath(electron);
+        System.out.println(ePath.size());
+        System.out.println(ePath.toString());
+
+        for(int i = 0; i < ePath.size(); i++){
+            Point3D point = ePath.point(i);
+            xPoints.add(point.x());
+            yPoints.add(point.y());
+            zPoints.add(point.z());
+        }
+
+        GraphErrors xy = new GraphErrors("xy", new DataVector(xPoints), new DataVector(yPoints));
+        xy.setTitle("e x position vs y");
+        GraphErrors yz = new GraphErrors("yz", new DataVector(yPoints), new DataVector(zPoints));
+        yz.setTitle("e y position vs z");
+
+        c1.divide(1,2);
+        c1.cd(0);
+        c1.draw(xy);
+        c1.cd(1);
+        c1.draw(yz);
+    }
+
     public static void main(String[] args) {
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
 //        particleSwimmerTest();
@@ -287,7 +367,9 @@ public class Debug {
 //        ecTest();
 //        ftofTest();;
 //        ftTest();
-        cvtTest2();
+//        cvtTest2();
+        electronTest();
+//        swimmerTest();
     }
 }
 

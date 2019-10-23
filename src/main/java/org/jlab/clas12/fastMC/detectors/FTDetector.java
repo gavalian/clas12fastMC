@@ -14,7 +14,7 @@ import java.util.List;
 public class FTDetector extends Detector {
 
     public FTDetector(){
-        this.setDetectorRegion(DetectorRegion.FORWARD);
+        this.setDetectorRegion(DetectorRegion.TAGGER);
         this.setType(DetectorType.FT);
         this.setDistanceToTarget(189.8);
         this.init();
