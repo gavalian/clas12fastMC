@@ -15,8 +15,13 @@ import cnuphys.swim.DefaultListener;
 import cnuphys.swim.DefaultSwimStopper;
 import cnuphys.swim.SwimTrajectory;
 import cnuphys.swim.Swimmer;
+import cnuphys.swimZ.SwimZ;
+import cnuphys.swimZ.SwimZException;
+import cnuphys.swimZ.SwimZResult;
+import cnuphys.swimZ.SwimZStateVector;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jlab.clas12.fastMC.tests.SwimmerTest;
@@ -33,25 +38,27 @@ public class ParticleSwimmer {
     private  CompositeField compositeField;
     private  MagneticFields mf;
     
-    private static final double rmax = 8.0;
+    private static final double rmax = 10.0;
     private static final double maxPathLength = 12.5;
     private static final double hdata[] = new double[3];
     private  Swimmer swimmer = null;
+    private  SwimZ   swimmerZ = null;
     
     public ParticleSwimmer(){
         //this.initFiled(-1.0, 1.0);
-        this.initMagneticField(-1.0, 1.0);
+        this.initMagneticField(-1.0, -1.0);
         swimmer = new Swimmer();
     }
     
     public ParticleSwimmer(double torusScale, double solenoidScale){
-        this.initFiled(torusScale, solenoidScale);
+        this.initMagneticField(torusScale, solenoidScale);
         if(compositeField == null){
             System.out.println(" NULL FIELD");
         } else {
             System.out.println(" NOT A NULL FIELD");
         }
-        swimmer = new Swimmer(this.compositeField);
+        swimmer = new Swimmer();
+        swimmerZ = new SwimZ();
     }
     
     
@@ -144,6 +151,25 @@ public class ParticleSwimmer {
          System.out.println ( "  SCALE FACTOR = " + compositeField.getScaleFactor());
     }
     
+    
+    public Path3D getParticlePathZ(Particle part){
+        Path3D path = new Path3D();
+        int Q = part.charge();
+        SwimZStateVector stateVec = new SwimZStateVector(
+                part.vertex().x(), part.vertex().y(),part.vertex().z(),
+                part.px()/part.p(),part.py()/part.p());
+        double[] hdata = new double[3];
+        try {
+            SwimZResult result = swimmerZ.adaptiveRK(Q, part.p(), stateVec, 800.00, 10e-4, hdata);
+            List<SwimZStateVector> trajectory = result.getTrajectory();
+            for(int i = 0; i < trajectory.size(); i++){
+                path.addPoint(trajectory.get(i).x, trajectory.get(i).y, trajectory.get(i).z);
+            }
+        } catch (SwimZException ex) {
+            Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return path;
+    }
     /**
      * Returns a Path3D object for particle swam through the magnetic field.
      * For neutral particles returns a simple path of a straight line that 

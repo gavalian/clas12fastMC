@@ -144,6 +144,10 @@ public class Clas12FastMC {
         return true;
     }
 
+    public Path3D  swim(Particle part){
+        return this.particleSwimmer.getParticlePath(part);
+    }
+    
     public boolean validHitByPid(Particle particle){
         /*
         Path3D particlePath = particleSwimmer.getParticlePath(particle);
