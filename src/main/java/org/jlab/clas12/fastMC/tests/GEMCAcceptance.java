@@ -1,30 +1,28 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package org.jlab.clas12.fastMC.tests;
 
-
+import org.jlab.clas12.fastMC.base.DetectorRegion;
 import org.jlab.clas12.fastMC.core.Clas12FastMC;
-import org.jlab.clas12.fastMC.swimmer.ParticleSwimmer;
 import org.jlab.clas12.fastMC.tools.EventAcceptance;
-import org.jlab.clas12.fastMC.tools.FileFinder;
-import org.jlab.groot.data.H2F;
-import org.jlab.groot.data.TDirectory;
 import org.jlab.groot.ui.TCanvas;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
-import org.jlab.jnp.hipo4.io.HipoReader;
+import org.jlab.jnp.hipo4.io.HipoChain;
 import org.jlab.jnp.physics.EventFilter;
+import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.PhysicsEvent;
 import org.jlab.jnp.reader.DataManager;
 
-import java.util.List;
-import org.jlab.clas12.fastMC.base.DetectorRegion;
-import org.jlab.jnp.hipo4.io.HipoChain;
-import org.jlab.jnp.physics.Particle;
-
-public class GEMCComparison {
-
-    public GEMCComparison(){}
-
-    public static void main(String[] args) {
+/**
+ *
+ * @author gavalian
+ */
+public class GEMCAcceptance {
+     public static void main(String[] args) {
 
 //        List<String> dataFiles = FileFinder.getFiles("/home/tylerviducic/research/rho/clas12/data/*");
         System.setProperty("JNP_DATA","/Users/gavalian/Work/DataSpace/JNP_DATA");
@@ -37,7 +35,6 @@ public class GEMCComparison {
         reader.addDir(directory);
         reader.open();
         
-
         EventAcceptance eventAcceptance = new EventAcceptance();
         Clas12FastMC clas12FastMC = new Clas12FastMC();
         // Different ways you can detect proton
@@ -87,12 +84,13 @@ public class GEMCComparison {
                 //}
             }
             
-            int countg = mcEvent.countByPid(22);
+            int countg = mcEvent.countByPid(11);
             //System.out.println(" # photons = " + countg);
             for(int p = 0; p < countg; p++){
                 photonCounter++;
                 //System.out.println("\t getting photon # " + p);
-                Particle photon = mcEvent.getParticleByPid(22, p);
+                Particle photon = mcEvent.getParticleByPid(11, p);
+               
                 //if(proton.theta()*57.29>40){
                     //System.out.println(proton.toLundString());
                     boolean status = clas12FastMC.validHit(photon);
@@ -108,5 +106,9 @@ public class GEMCComparison {
         System.out.printf(" EVENT = %8d, PHOTONS = %8d, TRUE = %8d, ACCEPTANCE = %8.4f\n", 
                 eventCounter, photonCounter, photonCounterTrue, (1.0*photonCounterTrue)/photonCounter);
         System.out.println("---------------------------------------------------------------------------------");
+        
+        TCanvas c1 = new TCanvas("c1",800,800);
+        
+        
     }
 }

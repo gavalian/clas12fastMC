@@ -16,13 +16,17 @@ import org.jlab.jnp.physics.Particle;
 public class SwimmerTest {
     public static void main(String[] args) {
         System.setProperty("JNP_DATA","/Users/gavalian/Work/DataSpace/JNP_DATA");
-        ParticleSwimmer swimmer = new ParticleSwimmer();
+        ParticleSwimmer swimmer = new ParticleSwimmer(-1.0,-1.0);
         Particle electron = new Particle();
-        electron.initParticle(11, 0.0, 0.5, 0.5, 0, 0, 0);
+        electron.initParticle(11, 0.5, 0.5, 0.5, 0, 0, 0);
         
         Path3D path = swimmer.getParticlePath(electron);
         
         path.show();
+        
+        //Path3D pathZ = swimmer.getParticlePathZ(electron);
+        
+        //pathZ.show();
         
         //CompositeField field = MagneticFields.getInstance().getCompositeField();
         /*
