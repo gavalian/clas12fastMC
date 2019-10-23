@@ -23,7 +23,10 @@ public class ElectronResolution implements ParticleModifier {
             double   pres = getP(part);
             double   tres = getTheta(part);
             double phires = getPhi(part);
+            //System.out.printf(" electron resolution = %8.5f %8.5f %8.5f\n",pres,tres,phires);
+            //System.out.println("BEFORE = " + part.toLundString());
             PhysicsFactory.applyResolution(part, pres, phires, phires);
+            //System.out.println("AFTER  =  " + part.toLundString());
         }
     }
     

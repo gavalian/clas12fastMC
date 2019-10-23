@@ -17,6 +17,7 @@ import org.jlab.jnp.physics.PhysicsEvent;
 import org.jlab.jnp.reader.DataManager;
 
 import java.util.List;
+import org.jlab.jnp.hipo4.io.HipoChain;
 
 public class Debug {
 
@@ -25,51 +26,35 @@ public class Debug {
     }
     
     private static void dcTest() {
-        List<String> dataFiles = FileFinder.getFiles("/media/tylerviducic/Elements/clas12/mcdata/rho_mc/*.hipo");
+        
+        
+       
         //String dataFile = "";
         System.setProperty("JNP_DATA","/home/tylerviducic/research/clas12MagField");
-        
-        H2F hSquare = new H2F("hSquare", "hSquare", 200, -450, 450, 200, -450, 450);
-        TCanvas c1 = new TCanvas("c1", 500, 500);
-
-        DCDetector dcDetector = new DCDetector();
-        ParticleSwimmer swimmer = new ParticleSwimmer();
-
+        String directory = "/Users/gavalian/Work/DataSpace/clas12/mc";
+       
         int eventCounter = 0;
 
-        for(String dataFile: dataFiles) {
-            HipoReader reader = new HipoReader();
-            reader.open(dataFile);
+       
+        HipoChain reader = new HipoChain();
+        reader.addDir(directory);
+        reader.open();
 
-            Bank particles = new Bank(reader.getSchemaFactory().getSchema("mc::event"));
-            Event event = new Event();
+        Bank particles = new Bank(reader.getSchemaFactory().getSchema("mc::event"));
+        Event event = new Event();
 
-            while (reader.hasNext()) {
-                eventCounter++;
-                reader.nextEvent(event);
-                event.read(particles);
+        while (reader.hasNext()) {
+            eventCounter++;
+            reader.nextEvent(event);
+            event.read(particles);
+            
 
-                PhysicsEvent physicsEvent = DataManager.getPhysicsEvent(10.6, particles);
-
-                ParticleList particleList = physicsEvent.getParticleList();
-                for (int i = 0; i < particleList.count(); i++) {
-                    Path3D particlePath = swimmer.getParticlePath(particleList.get(i));
-                    List<DetectorHit> hits = dcDetector.getHits(particlePath);
-                    if (hits.size() > 0) {
-                        System.out.println("has hits");
-                        for (DetectorHit hit : hits) {
-                            hSquare.fill(hit.getHitPosition().x(), hit.getHitPosition().y());
-                        }
-                    }
-                }
 //                if (eventCounter > 100000) {
 //                    break;
 //                }
-            }
-        }
-        c1.draw(hSquare);
+        }       
     }
-
+    
     private static void ecTest() {
         List<String> dataFiles = FileFinder.getFiles("/media/tylerviducic/Elements/clas12/mcdata/rho_mc/*.hipo");
         //String dataFile = "";

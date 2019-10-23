@@ -39,7 +39,7 @@ public class CVTDetector extends Detector {
     }
 
     @Override
-    public void init() {
+    public final void init() {
         for(int i = 1; i < 5; i ++){
             int numRegions = parameters.getNumRegions(i);
             double zDistance = parameters.getZDistance(i);

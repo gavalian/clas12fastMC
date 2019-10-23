@@ -183,7 +183,7 @@ public class ParticleSwimmer {
                     stopper, listener, maxPathLength,
                     stepSize, Swimmer.CLAS_Tolerance, hdata);*/
             SwimTrajectory traj = swimmer.swim(charge, 
-                                        part.vertex().x(),part.vertex().y(),part.vertex().z(),
+                                        part.vertex().x()/100.0,part.vertex().y()/100.0,part.vertex().z()/100.0,
                                         part.vector().p(),
                                         Math.toDegrees(part.vector().theta()),
                                         Math.toDegrees(part.vector().phi()),

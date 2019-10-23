@@ -52,11 +52,11 @@ public abstract class Detector {
         return tilt;
     }
 
-    public void setType(DetectorType detectorType){
+    public final void setType(DetectorType detectorType){
         this.detectorType = detectorType;
     }
 
-    public void setDetectorRegion(DetectorRegion detectorRegion){
+    public final void setDetectorRegion(DetectorRegion detectorRegion){
         this.detectorRegion = detectorRegion;
     }
 
