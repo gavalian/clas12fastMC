@@ -56,6 +56,20 @@ public class Clas12Region {
         return DetectorRegion.UNDEFINED;
     }
     
+    
+    @Override
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        str.append(String.format("config pid = %5d\n", particleID));
+        for(Map.Entry<DetectorRegion,List<DetectorRegionConfig>> entry : this.pidConfigs.entrySet()){
+            str.append(String.format("\t region : %12s\n", entry.getKey().getName()));
+            for(DetectorRegionConfig config : entry.getValue()){
+                str.append("\t\t").append(config.toString()).append("\n");
+            }
+        }
+        return str.toString();
+    }
+    
     public static class DetectorRegionConfig {
         
         private Detector     detector = null;
@@ -69,6 +83,14 @@ public class Clas12Region {
             List<DetectorHit> detHits = detector.getHits(path);
             if(detHits.size()>=acceptedHits) return true;
             return false;
+        }
+        
+        @Override
+        public String toString(){
+            StringBuilder str = new StringBuilder();
+            str.append(String.format("detector : %10s , hits = %5d", 
+                    detector.getDetectorType().getName(),acceptedHits));
+            return str.toString();
         }
     }
 }

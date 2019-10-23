@@ -46,14 +46,15 @@ public class GEMCComparison {
         clas12FastMC.addConfiguration(2212, DetectorRegion.FORWARD,   "DC", 6);
         clas12FastMC.addConfiguration(2212, DetectorRegion.FORWARD, "FTOF", 1);
         // photon is only detected in EC
-        clas12FastMC.addConfiguration(22, DetectorRegion.FORWARD, "ECAL", 1);
-        
-        
+        clas12FastMC.addConfiguration(22, DetectorRegion.FORWARD,   "ECAL", 1);
+                
+        clas12FastMC.show();
         //clas12FastMC.addConfiguration(2212, "CVT", 3);
         
         EventFilter filter = new EventFilter("11:X+:X-:Xn");
 
         Event event = new Event();
+        
         Bank mcParticle = new Bank(reader.getSchemaFactory().getSchema("MC::Particle"));
         Bank recParticle = new Bank(reader.getSchemaFactory().getSchema("REC::Particle"));
         
@@ -64,12 +65,14 @@ public class GEMCComparison {
         int photonCounterTrue  = 0;
         
         while (reader.hasNext()){
+            
             reader.nextEvent(event);
             event.read(recParticle);
             event.read(mcParticle);
             
             PhysicsEvent mcEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
             PhysicsEvent recEvent = DataManager.getPhysicsEvent(10.6, recParticle);
+            
             eventCounter++;
             
             int count = mcEvent.countByPid(2212);
@@ -96,8 +99,7 @@ public class GEMCComparison {
                     if(status==true) photonCounterTrue++;
                     System.out.printf(" event # %8d , loop = %4d  status = %s\n",eventCounter,p,status);
                 //}
-            }
-            
+            }            
   
         }
         System.out.println("\n\n---------------------------------------------------------------------------------");
