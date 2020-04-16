@@ -11,7 +11,7 @@
         <dependency>
             <groupId>org.jlab.jnp</groupId>
             <artifactId>jnp-utils</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>2.0-SNAPSHOT</version>
         </dependency>
 
 	<dependency>
@@ -23,19 +23,19 @@
         <dependency>
             <groupId>org.jlab.jnp</groupId>
             <artifactId>jnp-physics</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.jlab.jnp</groupId>
             <artifactId>jnp-geometry</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>2.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.jlab.jnp</groupId>
             <artifactId>jnp-hipo4</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
