@@ -33,7 +33,7 @@ public interface DetectorEvent {
     public void    combine(LorentzVector vL, int[]   pid, int[] order, int[] sign, double[] mass);
     
     public double  getResponse(int type, int detector);
-    public void    getPosition(Vector3 v3, int detector);
+    public void    getPosition(Vector3 v3, int detector, int index);
     
     
 }

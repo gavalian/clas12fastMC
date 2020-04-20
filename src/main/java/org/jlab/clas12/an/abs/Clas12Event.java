@@ -31,30 +31,35 @@ public class Clas12Event implements DetectorEvent {
     
     private String particleBankName    = "REC::Particle";
     private String trajectoryBankName  = "REC::Traj";
-    private String detectorBankName    = "REC::response";
+    private String detectorBankName    = "REC::Calorimeter";
     
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
+        initialize();
     }
     
-    private void initilize(){
+    private void initialize(){
         SchemaFactory factory = hipoChain.getSchemaFactory();
+        //factory.show();
         if(factory.hasSchema(particleBankName)==true){
             particleBank = new Bank(factory.getSchema(particleBankName));
+            System.out.println(">>>>> initalizing particle bank : " + particleBankName);
         }
         
         if(factory.hasSchema(trajectoryBankName)==true){
             trajectoryBank = new Bank(factory.getSchema(trajectoryBankName));
+            System.out.println(">>>>> initalizing trajectory bank : " + trajectoryBankName);
         }
         
         if(factory.hasSchema(detectorBankName)==true){
             detectorBank = new Bank(factory.getSchema(detectorBankName));
+            System.out.println(">>>>> initalizing detector bank : " + detectorBankName);
         }
     }
     
     @Override
     public int getPid(int index) {
-        if(particleBank!=null) particleBank.getInt(0,index);
+        if(particleBank!=null) return particleBank.getInt(0,index);
         return -1;
     }
 
@@ -65,13 +70,21 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public int count() {
-        if(particleBank!=null) particleBank.getRows();
+        if(particleBank!=null) return particleBank.getRows();
         return -1;
     }
 
     @Override
     public int getIndex(int pid, int order) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int skip = 0;
+        int count = count();
+        for(int i = 0; i < count; i++){
+            if(getPid(i)==pid){
+                if(skip==order) return i;
+                skip++;
+            }
+        }
+        return -1;
     }
 
     @Override
@@ -92,6 +105,25 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void getPath(Path3D path, int index) {
+        int charge = this.particleBank.getInt("charge", index);
+        if(charge==0){
+            path.clear();
+            path.addPoint(0.0,0.0,0.0);
+            int nrowsECAL = this.detectorBank.getRows();
+            for(int i = 0 ; i < nrowsECAL; i++){
+                int pindex = this.detectorBank.getInt("pindex", i);
+                if(pindex==index){
+                    path.addPoint(this.detectorBank.getFloat("x", i), 
+                            this.detectorBank.getFloat("y", i), 
+                            this.detectorBank.getFloat("z", i)
+                            );
+                }
+            }
+        } else {
+            path.clear();
+            path.addPoint(0.0, 0.0,  0.0);
+            path.addPoint(0.0, 0.0, 10.0);
+        }
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -99,7 +131,10 @@ public class Clas12Event implements DetectorEvent {
     public boolean readNext() {
         if(hipoChain.hasNext()==false) return false;
         hipoChain.nextEvent(hipoEvent);
-        if(particleBank != null) hipoEvent.read(particleBank);
+        if(particleBank != null) {
+            hipoEvent.read(particleBank);
+            //System.out.println(" particle rows = " + particleBank.getRows());
+        }
         if(trajectoryBank != null) hipoEvent.read(trajectoryBank);
         if(detectorBank != null) hipoEvent.read(detectorBank);
         return true;
@@ -132,18 +167,40 @@ public class Clas12Event implements DetectorEvent {
     }
 
     @Override
-    public void getPosition(Vector3 v3, int detector) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void getPosition(Vector3 v3, int detector, int index) {
+        int nrowsECAL = this.detectorBank.getRows();
+        for(int i = 0 ; i < nrowsECAL; i++){
+            int pindex = this.detectorBank.getInt("pindex", i);
+            int  layer = this.detectorBank.getInt("layer", i);
+            if(pindex==index&&layer==1){
+                if(detector==1){
+                    v3.setXYZ(
+                            detectorBank.getFloat("lu",i),
+                            detectorBank.getFloat("lv",i),
+                            detectorBank.getFloat("lw",i)
+                    );
+                }
+                if(detector==2){
+                    v3.setXYZ(
+                            detectorBank.getFloat("x",i),
+                            detectorBank.getFloat("y",i),
+                            detectorBank.getFloat("z",i)
+                    );
+                }
+            }
+        }
     }
 
     @Override
     public void setStatus(int index, int status) {
+        if(particleBank!=null) particleBank.putShort("status", index, (short) status);
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public int getStatus(int index) {
-        return 1;
+        if(particleBank!=null) return particleBank.getInt("status",index);
+        return -1;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

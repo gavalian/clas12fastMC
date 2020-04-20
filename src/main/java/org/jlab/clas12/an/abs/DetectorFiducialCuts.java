@@ -35,8 +35,10 @@ public class DetectorFiducialCuts implements EventModifier {
         Path3D   path = new Path3D();        
         for(int i = 0; i < count; i++){
             int pid = detEvent.getPid(i);
+            //System.out.println(" pid = " + pid + " has it : " + configs.containsKey(pid));
             if(configs.containsKey(pid)==true){
                 detEvent.getPath(path, i);
+                //System.out.println("PASS : " + configs.get(pid).pass(path));
                 if(configs.get(pid).pass(path)==true){
                     detEvent.setStatus(i, 1);
                 } else {
