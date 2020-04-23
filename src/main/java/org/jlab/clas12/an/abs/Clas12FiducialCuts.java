@@ -104,7 +104,7 @@ public class Clas12FiducialCuts {
         Vector3 vecL = new Vector3();
         Vector3 vecP = new Vector3();
         TCanvas c1 = new TCanvas("c1",500,500);
-        c1.getCanvas().initTimer(500);
+        c1.getCanvas().initTimer(3000);
         
         c1.divide(2, 2);
         H2F h2  = new H2F("h2",240,-420,420,240,-420,420);
@@ -139,8 +139,8 @@ public class Clas12FiducialCuts {
                 vecL.setXYZ(0.0, 0.0, 0.0);
                 vecP.setXYZ(0.0, 0.0, 0.0);
                 
-                clas12Event.getPosition(vecL, 1, photonIndex);
-                clas12Event.getPosition(vecP, 2, photonIndex);
+                clas12Event.getPosition(vecL, 1, photonIndex,0);
+                clas12Event.getPosition(vecP, 2, photonIndex,0);
                 System.out.printf("%3d %5d %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n",
                         statusFid,status,
                         vecL.x(),vecL.y(),vecL.z(),

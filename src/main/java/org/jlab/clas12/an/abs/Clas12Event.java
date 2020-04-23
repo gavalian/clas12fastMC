@@ -33,6 +33,9 @@ public class Clas12Event implements DetectorEvent {
     private String trajectoryBankName  = "REC::Traj";
     private String detectorBankName    = "REC::Calorimeter";
     
+    
+    private Reference  particleReference = new ReferenceMap();
+    
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
         initialize();
@@ -162,17 +165,17 @@ public class Clas12Event implements DetectorEvent {
     }
 
     @Override
-    public double getResponse(int type, int detector) {
+    public double getResponse(int type, int detector, int particle) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void getPosition(Vector3 v3, int detector, int index) {
+    public void getPosition(Vector3 v3, int detector, int particle, int frame) {
         int nrowsECAL = this.detectorBank.getRows();
         for(int i = 0 ; i < nrowsECAL; i++){
             int pindex = this.detectorBank.getInt("pindex", i);
             int  layer = this.detectorBank.getInt("layer", i);
-            if(pindex==index&&layer==1){
+            if(pindex==particle&&layer==1){
                 if(detector==1){
                     v3.setXYZ(
                             detectorBank.getFloat("lu",i),
@@ -202,6 +205,16 @@ public class Clas12Event implements DetectorEvent {
         if(particleBank!=null) return particleBank.getInt("status",index);
         return -1;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public long getEventProperty(int type, int flag) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getProperty(int propertyType, int particle) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
