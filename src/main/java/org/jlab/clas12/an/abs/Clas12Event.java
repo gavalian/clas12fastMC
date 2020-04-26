@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jlab.clas12.an.base.DetectorEvent;
 import org.jlab.clas12.fastMC.base.DetectorLayer;
-import org.jlab.clas12.fastMC.base.DetectorRegion;
 import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.hipo4.data.Bank;
@@ -21,7 +20,10 @@ import org.jlab.jnp.physics.Vector3;
  * @author gavalian
  */
 public class Clas12Event implements DetectorEvent {
-   
+  
+    static final int RESPONSE_ENERGY=1;
+    static final int RESPONSE_TIME=2;
+    
     private HipoChain hipoChain      = null;
     private Event     hipoEvent      = new Event();
     //-------------------------------------------------
@@ -264,26 +266,37 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public double getResponse(int type, int detector, int layer, int particle) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        int dindex = detectorRefs.get(particle,detector,layer);
+        if (dindex>=0) {
+            Bank bank = detectorTypeBanks.get(detector);
+            if (type==RESPONSE_ENERGY) {
+                return bank.getFloat("energy",dindex);
+            } 
+            else if (type==RESPONSE_TIME) {
+                return bank.getFloat("time",dindex);
+            }
+        }
+        return -1;
     }
 
     @Override
     public void getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
-            if (detector==DetectorType.ECAL.getDetectorId()) {
-                if (frame==1) {
-                    v3.setXYZ(calorimeterBank.getFloat("lu",dindex),
-                            calorimeterBank.getFloat("lv",dindex),
-                            calorimeterBank.getFloat("lw",dindex)
+            Bank bank = detectorTypeBanks.get(detector);
+            if (frame==1) {
+                if (detector==DetectorType.ECAL.getDetectorId()) {
+                    v3.setXYZ(bank.getFloat("lu",dindex),
+                            bank.getFloat("lv",dindex),
+                            bank.getFloat("lw",dindex)
                     );
                 }
-                else if (frame==2) {
-                    v3.setXYZ(calorimeterBank.getFloat("x",dindex),
-                            calorimeterBank.getFloat("y",dindex),
-                            calorimeterBank.getFloat("z",dindex)
-                    );
-                }
+            }
+            else if (frame==2) {
+                v3.setXYZ(bank.getFloat("x",dindex),
+                        bank.getFloat("y",dindex),
+                        bank.getFloat("z",dindex)
+                );
             }
         }
     }
