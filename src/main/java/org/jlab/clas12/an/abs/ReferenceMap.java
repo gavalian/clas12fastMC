@@ -1,29 +1,52 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jlab.clas12.an.abs;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
- * @author gavalian
+ * @author baltzell
  */
 public class ReferenceMap implements Reference {
 
+    private final Map <Integer,Map<Integer,Map>> cache = new HashMap<>();
+   
+    public ReferenceMap() {}
+    
     @Override
-    public void insert(int detector_type, int pindex) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void put(int source,int type,int layer,int dest) {
+        if (!cache.containsKey(source)) {
+            cache.put(source,new HashMap<>());
+        }
+        if (!cache.get(source).containsKey(type)) {
+            cache.get(source).put(type,new HashMap<Integer,Integer>());
+        }
+        cache.get(source).get(type).put(layer,dest);
     }
 
     @Override
-    public int get(int detector_type) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int get(int source,int type,int layer) {
+        if (contains(source,type,layer)) {
+            return (int)cache.get(source).get(type).get(layer);
+        }
+        return -1;
     }
 
+    @Override
+    public boolean contains(int source,int type,int layer) {
+        if (cache.containsKey(source)) {
+            if (cache.get(source).containsKey(type)) {
+                if (cache.get(source).get(type).containsKey(layer)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
     @Override
     public void clear() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        cache.clear();
     }
     
 }

@@ -1,11 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jlab.clas12.an.abs;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.jlab.clas12.an.base.DetectorEvent;
+import org.jlab.clas12.fastMC.base.DetectorLayer;
+import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
@@ -27,21 +26,41 @@ public class Clas12Event implements DetectorEvent {
     // Each bank name is configurable....
     private Bank      particleBank   = null;
     private Bank      trajectoryBank = null;
-    private Bank      detectorBank   = null;
+    private Bank      calorimeterBank   = null;
+    private Bank      scintillatorBank   = null;
+    private Bank      cherenkovBank = null;
     
-    private String particleBankName    = "REC::Particle";
-    private String trajectoryBankName  = "REC::Traj";
-    private String detectorBankName    = "REC::Calorimeter";
+    private final String particleBankName    = "REC::Particle";
+    private final String trajectoryBankName  = "REC::Traj";
+    private final String calorimeterBankName    = "REC::Calorimeter";
+    private final String scintillatorBankName    = "REC::Scintillator";
+    private final String cherenkovBankName    = "REC::Cherenkov";
     
-    
-    private Reference  particleReference = new ReferenceMap();
+    private final Set <Bank> detectorBanks = new HashSet();
+    private final Reference detectorRefs = new ReferenceMap();
     
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
         initialize();
     }
+   
+    private void loadReferences() {
+        for (Bank bank : detectorBanks) {
+            for (int ii=0; ii<bank.getRows(); ii++) {
+                int pindex = bank.getShort("pindex", ii);
+                int layer = bank.getByte("layer",ii);
+                int dtype = bank.getByte("detector",ii);
+                detectorRefs.put(pindex,dtype,layer,ii);
+            }
+        }
+    }
     
     private void initialize(){
+
+        detectorBanks.add(calorimeterBank);
+        detectorBanks.add(scintillatorBank);
+        detectorBanks.add(cherenkovBank);
+        
         SchemaFactory factory = hipoChain.getSchemaFactory();
         //factory.show();
         if(factory.hasSchema(particleBankName)==true){
@@ -54,9 +73,19 @@ public class Clas12Event implements DetectorEvent {
             System.out.println(">>>>> initalizing trajectory bank : " + trajectoryBankName);
         }
         
-        if(factory.hasSchema(detectorBankName)==true){
-            detectorBank = new Bank(factory.getSchema(detectorBankName));
-            System.out.println(">>>>> initalizing detector bank : " + detectorBankName);
+        if(factory.hasSchema(calorimeterBankName)==true){
+            calorimeterBank = new Bank(factory.getSchema(calorimeterBankName));
+            System.out.println(">>>>> initalizing detector bank : " + calorimeterBankName);
+        }
+        
+        if(factory.hasSchema(scintillatorBankName)==true){
+            scintillatorBank = new Bank(factory.getSchema(scintillatorBankName));
+            System.out.println(">>>>> initalizing detector bank : " + scintillatorBankName);
+        }
+        
+        if(factory.hasSchema(cherenkovBankName)==true){
+            cherenkovBank = new Bank(factory.getSchema(cherenkovBankName));
+            System.out.println(">>>>> initalizing detector bank : " + cherenkovBankName);
         }
     }
     
@@ -112,14 +141,12 @@ public class Clas12Event implements DetectorEvent {
         if(charge==0){
             path.clear();
             path.addPoint(0.0,0.0,0.0);
-            int nrowsECAL = this.detectorBank.getRows();
-            for(int i = 0 ; i < nrowsECAL; i++){
-                int pindex = this.detectorBank.getInt("pindex", i);
-                if(pindex==index){
-                    path.addPoint(this.detectorBank.getFloat("x", i), 
-                            this.detectorBank.getFloat("y", i), 
-                            this.detectorBank.getFloat("z", i)
-                            );
+            for (int layer : DetectorLayer.ECAL_LAYERS) {
+                final int dindex = detectorRefs.get(index,DetectorType.ECAL.getDetectorId(),layer);
+                if (dindex>=0) {
+                    path.addPoint(this.calorimeterBank.getFloat("x",dindex),
+                                  this.calorimeterBank.getFloat("y",dindex),
+                                  this.calorimeterBank.getFloat("z",dindex));
                 }
             }
         } else {
@@ -127,19 +154,19 @@ public class Clas12Event implements DetectorEvent {
             path.addPoint(0.0, 0.0,  0.0);
             path.addPoint(0.0, 0.0, 10.0);
         }
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public boolean readNext() {
         if(hipoChain.hasNext()==false) return false;
+        detectorRefs.clear();
         hipoChain.nextEvent(hipoEvent);
-        if(particleBank != null) {
-            hipoEvent.read(particleBank);
-            //System.out.println(" particle rows = " + particleBank.getRows());
-        }
+        if(particleBank != null) hipoEvent.read(particleBank);
         if(trajectoryBank != null) hipoEvent.read(trajectoryBank);
-        if(detectorBank != null) hipoEvent.read(detectorBank);
+        if(calorimeterBank != null) hipoEvent.read(calorimeterBank);
+        if(scintillatorBank != null) hipoEvent.read(scintillatorBank);
+        if(cherenkovBank != null) hipoEvent.read(cherenkovBank);
+        loadReferences();
         return true;
     }
 
@@ -171,23 +198,21 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void getPosition(Vector3 v3, int detector, int particle, int frame) {
-        int nrowsECAL = this.detectorBank.getRows();
+        int nrowsECAL = this.calorimeterBank.getRows();
         for(int i = 0 ; i < nrowsECAL; i++){
-            int pindex = this.detectorBank.getInt("pindex", i);
-            int  layer = this.detectorBank.getInt("layer", i);
+            int pindex = this.calorimeterBank.getInt("pindex", i);
+            int  layer = this.calorimeterBank.getInt("layer", i);
             if(pindex==particle&&layer==1){
                 if(detector==1){
-                    v3.setXYZ(
-                            detectorBank.getFloat("lu",i),
-                            detectorBank.getFloat("lv",i),
-                            detectorBank.getFloat("lw",i)
+                    v3.setXYZ(calorimeterBank.getFloat("lu",i),
+                            calorimeterBank.getFloat("lv",i),
+                            calorimeterBank.getFloat("lw",i)
                     );
                 }
                 if(detector==2){
-                    v3.setXYZ(
-                            detectorBank.getFloat("x",i),
-                            detectorBank.getFloat("y",i),
-                            detectorBank.getFloat("z",i)
+                    v3.setXYZ(calorimeterBank.getFloat("x",i),
+                            calorimeterBank.getFloat("y",i),
+                            calorimeterBank.getFloat("z",i)
                     );
                 }
             }
