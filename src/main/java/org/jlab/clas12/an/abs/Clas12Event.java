@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.jlab.clas12.an.base.DetectorEvent;
 import org.jlab.clas12.fastMC.base.DetectorLayer;
+import org.jlab.clas12.fastMC.base.DetectorRegion;
 import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.hipo4.data.Bank;
@@ -95,9 +96,16 @@ public class Clas12Event implements DetectorEvent {
         return -1;
     }
 
+    public int getRegion(int index) {
+        // technically the regions aren't exclusive and this is a bitmask:
+        final int stat = particleBank.getInt("status",index)/1000;
+        // but we ignore that here and just get the least significant bit:
+        return (int)((Math.log10(stat & -stat)) / Math.log10(2)) + 1; 
+    }
+
     @Override
     public void setPid(int pid, int index) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -183,36 +191,35 @@ public class Clas12Event implements DetectorEvent {
                 vL.sub(px, py, pz, mass[i]);
             }
         }
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void combine(LorentzVector vL, int[] pid, int[] order, int[] sign, double[] mass) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public double getResponse(int type, int detector, int particle) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
+    // FIXME: don't we need layer?
     public void getPosition(Vector3 v3, int detector, int particle, int frame) {
-        int nrowsECAL = this.calorimeterBank.getRows();
-        for(int i = 0 ; i < nrowsECAL; i++){
-            int pindex = this.calorimeterBank.getInt("pindex", i);
-            int  layer = this.calorimeterBank.getInt("layer", i);
-            if(pindex==particle&&layer==1){
-                if(detector==1){
-                    v3.setXYZ(calorimeterBank.getFloat("lu",i),
-                            calorimeterBank.getFloat("lv",i),
-                            calorimeterBank.getFloat("lw",i)
+        if (detector==DetectorType.ECAL.getDetectorId()) {
+            int dindex = detectorRefs.get(particle,detector,DetectorLayer.PCAL_U);
+            if (dindex>=0) {
+                if (frame==1) {
+                    v3.setXYZ(calorimeterBank.getFloat("lu",dindex),
+                            calorimeterBank.getFloat("lv",dindex),
+                            calorimeterBank.getFloat("lw",dindex)
                     );
+                    
                 }
-                if(detector==2){
-                    v3.setXYZ(calorimeterBank.getFloat("x",i),
-                            calorimeterBank.getFloat("y",i),
-                            calorimeterBank.getFloat("z",i)
+                else if (frame==2) {
+                    v3.setXYZ(calorimeterBank.getFloat("x",dindex),
+                            calorimeterBank.getFloat("y",dindex),
+                            calorimeterBank.getFloat("z",dindex)
                     );
                 }
             }
@@ -222,24 +229,22 @@ public class Clas12Event implements DetectorEvent {
     @Override
     public void setStatus(int index, int status) {
         if(particleBank!=null) particleBank.putShort("status", index, (short) status);
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public int getStatus(int index) {
         if(particleBank!=null) return particleBank.getInt("status",index);
         return -1;
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public long getEventProperty(int type, int flag) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public int getProperty(int propertyType, int particle) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }
