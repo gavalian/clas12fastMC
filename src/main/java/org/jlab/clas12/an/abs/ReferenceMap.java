@@ -1,7 +1,10 @@
 package org.jlab.clas12.an.abs;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  *
@@ -19,7 +22,7 @@ public class ReferenceMap implements Reference {
             cache.put(source,new HashMap<>());
         }
         if (!cache.get(source).containsKey(type)) {
-            cache.get(source).put(type,new HashMap<Integer,Integer>());
+            cache.get(source).put(type,new TreeMap<Integer,Integer>());
         }
         cache.get(source).get(type).put(layer,dest);
     }
@@ -31,14 +34,30 @@ public class ReferenceMap implements Reference {
         }
         return -1;
     }
+    
+    @Override
+    public Set<Integer> get(int source,int type) {
+        if (contains(source,type)) {
+            return cache.get(source).get(type).keySet();
+        }
+        return null;
+    }
 
     @Override
-    public boolean contains(int source,int type,int layer) {
+    public boolean contains(int source,int type) {
         if (cache.containsKey(source)) {
             if (cache.get(source).containsKey(type)) {
-                if (cache.get(source).get(type).containsKey(layer)) {
-                    return true;
-                }
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean contains(int source,int type,int layer) {
+        if (contains(source,type)) {
+            if (cache.get(source).get(type).containsKey(layer)) {
+                return true;
             }
         }
         return false;

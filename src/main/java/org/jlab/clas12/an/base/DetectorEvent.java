@@ -38,8 +38,8 @@ public interface DetectorEvent {
     public void    combine(LorentzVector vL, int[]   pid, int[] order, int[] sign, double[] mass);
     
     
-    public double  getResponse( int responsetype, int detector, int particle);
-    public void    getPosition( Vector3 v3, int detector, int particle, int frame);
+    public double  getResponse( int responsetype, int detector, int layer, int particle);
+    public void    getPosition( Vector3 v3, int detector, int layer, int particle, int frame);
     public int     getProperty(int propertyType, int particle);
     
     public long    getEventProperty(int type, int flag);
