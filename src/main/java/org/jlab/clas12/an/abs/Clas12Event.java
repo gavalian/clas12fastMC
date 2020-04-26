@@ -86,12 +86,11 @@ public class Clas12Event implements DetectorEvent {
             cherenkovBank = new Bank(factory.getSchema(cherenkovBankName));
             System.out.println(">>>>> initalizing detector bank : " + cherenkovBankName);
         }
-    }
-    
-    private void loadReferences() {
+        
         detectorBanks.add(calorimeterBank);
         detectorBanks.add(scintillatorBank);
         detectorBanks.add(cherenkovBank);
+
         detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),calorimeterBank);
         detectorTypeBanks.put(DetectorType.ECAL.getDetectorId(),calorimeterBank);
         detectorTypeBanks.put(DetectorType.CTOF.getDetectorId(),scintillatorBank);
@@ -100,6 +99,9 @@ public class Clas12Event implements DetectorEvent {
         detectorTypeBanks.put(DetectorType.BAND.getDetectorId(),scintillatorBank);
         detectorTypeBanks.put(DetectorType.HTCC.getDetectorId(),cherenkovBank);
         detectorTypeBanks.put(DetectorType.LTCC.getDetectorId(),cherenkovBank);
+    }
+    
+    private void loadReferences() {
         for (Bank bank : detectorBanks) {
             for (int ii=0; ii<bank.getRows(); ii++) {
                 int pindex = bank.getShort("pindex", ii);
@@ -232,8 +234,8 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public boolean readNext() {
-        if(hipoChain.hasNext()==false) return false;
         detectorRefs.clear();
+        if(hipoChain.hasNext()==false) return false;
         hipoChain.nextEvent(hipoEvent);
         if(particleBank != null) hipoEvent.read(particleBank);
         if(trajectoryBank != null) hipoEvent.read(trajectoryBank);
