@@ -1,7 +1,6 @@
 package org.jlab.clas12.an.abs;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;

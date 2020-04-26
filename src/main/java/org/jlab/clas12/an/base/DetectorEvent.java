@@ -39,7 +39,7 @@ public interface DetectorEvent {
     
     
     public double  getResponse( int responsetype, int detector, int layer, int particle);
-    public void    getPosition( Vector3 v3, int detector, int layer, int particle, int frame);
+    public boolean getPosition( Vector3 v3, int detector, int layer, int particle, int frame);
     public int     getProperty(int propertyType, int particle);
     
     public long    getEventProperty(int type, int flag);

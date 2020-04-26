@@ -18,9 +18,12 @@ import org.jlab.jnp.physics.Vector3;
 /**
  *
  * @author gavalian
+ * @author baltzell
  */
 public class Clas12Event implements DetectorEvent {
-  
+ 
+    static final int FRAME_LOCAL=1;
+    static final int FRAME_GLOBAL=1;
     static final int RESPONSE_ENERGY=1;
     static final int RESPONSE_TIME=2;
     
@@ -178,53 +181,89 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void getPath(Path3D path, int index) {
+            
+        Vector3 v3=new Vector3();
+
         path.clear();
-        int charge = this.particleBank.getInt("charge", index);
-        if(charge==0){
+
+        if (this.particleBank.getInt("charge", index)==0) {
+                    
             // use trigger particle's vertex, if there is one:
             if (particleBank.getShort("status",0)<0) {
-                Vector3 vtx=new Vector3();
-                getVertex(vtx,0);
-                path.addPoint(vtx.x(),vtx.y(),vtx.z());
+                getVertex(v3,0);
+                path.addPoint(v3.x(),v3.y(),v3.z());
             }
             else {
                 path.addPoint(0.0,0.0,0.0);
             }
-            // FIXME:  should we be calling getPosition here?
+
             switch (this.getRegion(index)) {
                 case 1:
                     break;
                 case 2:
                     for (int layer : DetectorLayer.ECAL_LAYERS) {
-                        final int dindex = detectorRefs.get(index,DetectorType.ECAL.getDetectorId(),layer);
-                        if (dindex>=0) {
-                            path.addPoint(this.calorimeterBank.getFloat("x",dindex),
-                                    this.calorimeterBank.getFloat("y",dindex),
-                                    this.calorimeterBank.getFloat("z",dindex));
+                        if (getPosition(v3,DetectorType.ECAL.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
                         }
                     }
                     break;
                 case 3:
+                    if (getPosition(v3,DetectorType.CND.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
+                    break;
+                case 4:
+                    if (getPosition(v3,DetectorType.BAND.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
                     break;
                 default:
                     break;
             }
-        } else {
+        }
+
+        else {
+
             switch (this.getRegion(index)) {
                 case 1:
                     break;
                 case 2:
+                    // FIXME:  init some Map of relevant detector/layer instead of this repitition
+                    // Or prune trajectoryRefs upon init and then use its natural ordering?
+                    if (getTrackPosition(v3,DetectorType.HTCC.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
                     for (int layer : DetectorLayer.DC_LAYERS) {
-                        final int dindex = trajectoryRefs.get(index,DetectorType.DC.getDetectorId(),layer);
-                        if (dindex>=0) {
-                            path.addPoint(this.trajectoryBank.getFloat("x",dindex),
-                                    this.trajectoryBank.getFloat("y",dindex),
-                                    this.trajectoryBank.getFloat("z",dindex)
-                            );
+                        if (getTrackPosition(v3,DetectorType.DC.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
+                    if (getTrackPosition(v3,DetectorType.LTCC.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
+                    for (int layer : DetectorLayer.FTOF_LAYERS) {
+                        if (getTrackPosition(v3,DetectorType.FTOF.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
+                    for (int layer : DetectorLayer.ECAL_LAYERS) {
+                        if (getTrackPosition(v3,DetectorType.ECAL.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
                         }
                     }
                     break;
                 case 3:
+                    for (int layer : DetectorLayer.CVT_LAYERS) {
+                        if (getTrackPosition(v3,DetectorType.CVT.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
+                    if (getTrackPosition(v3,DetectorType.CTOF.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
+                    if (getTrackPosition(v3,DetectorType.CND.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
                     break;
                 default:
                     break;
@@ -268,39 +307,61 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public double getResponse(int type, int detector, int layer, int particle) {
+        double ret=-1;
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
             Bank bank = detectorTypeBanks.get(detector);
-            if (type==RESPONSE_ENERGY) {
-                return bank.getFloat("energy",dindex);
-            } 
-            else if (type==RESPONSE_TIME) {
-                return bank.getFloat("time",dindex);
+            switch (type) {
+                case RESPONSE_ENERGY:
+                    ret=bank.getFloat("energy",dindex);
+                    break;
+                case RESPONSE_TIME:
+                    ret=bank.getFloat("time",dindex);
+                    break;
+                default:
+                    break;
             }
         }
-        return -1;
+        return ret;
     }
 
     @Override
-    public void getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
+    public boolean getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
             Bank bank = detectorTypeBanks.get(detector);
-            if (frame==1) {
+            if (frame==FRAME_LOCAL) {
                 if (detector==DetectorType.ECAL.getDetectorId()) {
                     v3.setXYZ(bank.getFloat("lu",dindex),
                             bank.getFloat("lv",dindex),
                             bank.getFloat("lw",dindex)
                     );
                 }
+                return true;
             }
-            else if (frame==2) {
+            else if (frame==FRAME_GLOBAL) {
                 v3.setXYZ(bank.getFloat("x",dindex),
                         bank.getFloat("y",dindex),
                         bank.getFloat("z",dindex)
                 );
+                return true;
             }
         }
+        return false;
+    }
+    
+    public boolean getTrackPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
+        int dindex = trajectoryRefs.get(particle,detector,layer);
+        if (dindex>=0) {
+            if (frame==FRAME_GLOBAL) {
+                v3.setXYZ(trajectoryBank.getFloat("x",dindex),
+                        trajectoryBank.getFloat("y",dindex),
+                        trajectoryBank.getFloat("z",dindex)
+                );
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

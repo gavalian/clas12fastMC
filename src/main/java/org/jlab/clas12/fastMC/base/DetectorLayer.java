@@ -33,6 +33,8 @@ public class DetectorLayer {
     public static final byte TARGET_DOWNSTREAM=2;
     public static final byte TARGET_UPSTREAM=3;
 
-    public static final byte ECAL_LAYERS[]={PCAL_U,EC_INNER_U,EC_OUTER_U};
+    public static final byte ECAL_LAYERS[]={PCAL,EC_INNER,EC_OUTER};
+    public static final byte FTOF_LAYERS[]={1,2,3};
     public static final byte DC_LAYERS[]={1,13,25};
+    public static final byte CVT_LAYERS[]={1,3,5,7,9,12};
 }
