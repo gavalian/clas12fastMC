@@ -41,6 +41,7 @@ public class Clas12Event implements DetectorEvent {
     private Bank      calorimeterBank   = null;
     private Bank      scintillatorBank   = null;
     private Bank      cherenkovBank = null;
+    private Bank      forwardtaggerBank = null;
     
     private final String particleBankName     = "REC::Particle";
     private final String trackBankName        = "REC::Track";
@@ -48,12 +49,14 @@ public class Clas12Event implements DetectorEvent {
     private final String calorimeterBankName  = "REC::Calorimeter";
     private final String scintillatorBankName = "REC::Scintillator";
     private final String cherenkovBankName    = "REC::Cherenkov";
-   
-    private final Map <Integer,Bank> detectorTypeBanks = new HashMap();
+    private final String forwardtaggerBankName= "REC::ForwardTagger";
+  
     private final Set <Bank> detectorBanks = new HashSet();
+    private final Map <Integer,Bank> detectorTypeBanks = new HashMap();
+    private final Map <Integer,Map <Integer,List<Integer>> > trajectoryOrder = new HashMap<>();
+    
     private final Reference detectorRefs = new ReferenceMap();
     private final Reference trajectoryRefs = new ReferenceMap();
-    private final Map <Integer,Map <Integer,List<Integer>> > trajectoryLayers = new HashMap<>();
     
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
@@ -68,37 +71,33 @@ public class Clas12Event implements DetectorEvent {
             particleBank = new Bank(factory.getSchema(particleBankName));
             System.out.println(">>>>> initalizing particle bank : " + particleBankName);
         }
-        
         if(factory.hasSchema(trackBankName)==true){
             trackBank = new Bank(factory.getSchema(trackBankName));
             System.out.println(">>>>> initalizing track bank : " + trackBankName);
         }
-        
         if(factory.hasSchema(trajectoryBankName)==true){
             trajectoryBank = new Bank(factory.getSchema(trajectoryBankName));
             System.out.println(">>>>> initalizing trajectory bank : " + trajectoryBankName);
         }
-        
         if(factory.hasSchema(calorimeterBankName)==true){
             calorimeterBank = new Bank(factory.getSchema(calorimeterBankName));
             System.out.println(">>>>> initalizing detector bank : " + calorimeterBankName);
         }
-        
         if(factory.hasSchema(scintillatorBankName)==true){
             scintillatorBank = new Bank(factory.getSchema(scintillatorBankName));
             System.out.println(">>>>> initalizing detector bank : " + scintillatorBankName);
         }
-        
         if(factory.hasSchema(cherenkovBankName)==true){
             cherenkovBank = new Bank(factory.getSchema(cherenkovBankName));
             System.out.println(">>>>> initalizing detector bank : " + cherenkovBankName);
         }
+        if(factory.hasSchema(forwardtaggerBankName)==true){
+            forwardtaggerBank = new Bank(factory.getSchema(forwardtaggerBankName));
+            System.out.println(">>>>> initalizing detector bank : " + forwardtaggerBankName);
+        }
         
-        detectorBanks.add(calorimeterBank);
-        detectorBanks.add(scintillatorBank);
-        detectorBanks.add(cherenkovBank);
-
-        detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),calorimeterBank);
+        detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),forwardtaggerBank);
+        detectorTypeBanks.put(DetectorType.FTHODO.getDetectorId(),forwardtaggerBank);
         detectorTypeBanks.put(DetectorType.ECAL.getDetectorId(),calorimeterBank);
         detectorTypeBanks.put(DetectorType.CTOF.getDetectorId(),scintillatorBank);
         detectorTypeBanks.put(DetectorType.FTOF.getDetectorId(),scintillatorBank);
@@ -107,29 +106,32 @@ public class Clas12Event implements DetectorEvent {
         detectorTypeBanks.put(DetectorType.HTCC.getDetectorId(),cherenkovBank);
         detectorTypeBanks.put(DetectorType.LTCC.getDetectorId(),cherenkovBank);
 
-        addTrajectoryLayers(1,DetectorType.FTTRK.getDetectorId(),1);
-        addTrajectoryLayers(1,DetectorType.FTHODO.getDetectorId(),1);
-        addTrajectoryLayers(1,DetectorType.FTCAL.getDetectorId(),1);
-        addTrajectoryLayers(2,DetectorType.HTCC.getDetectorId(),1);
-        addTrajectoryLayers(2,DetectorType.DC.getDetectorId(),1,6,12);
-        addTrajectoryLayers(2,DetectorType.LTCC.getDetectorId(),1);
-        addTrajectoryLayers(2,DetectorType.FTOF.getDetectorId(),1,2,3);
-        addTrajectoryLayers(2,DetectorType.ECAL.getDetectorId(),1,4,7);
-        addTrajectoryLayers(3,DetectorType.CVT.getDetectorId(),1,6,12);
-        addTrajectoryLayers(3,DetectorType.CTOF.getDetectorId(),1);
-        addTrajectoryLayers(3,DetectorType.CND.getDetectorId(),1);
-        addTrajectoryLayers(4,DetectorType.BAND.getDetectorId(),1);
+        detectorBanks.addAll(detectorTypeBanks.values());
+
+        // note, adding and layer ordering here dictates path ordering:
+        // (this can be dropped completely if trajectory bank is ordered by path)
+        extendTrajectoryOrder(1,DetectorType.FTHODO.getDetectorId(),1);
+        extendTrajectoryOrder(1,DetectorType.FTCAL.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.HTCC.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.DC.getDetectorId(),1,6,12);
+        extendTrajectoryOrder(2,DetectorType.LTCC.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.FTOF.getDetectorId(),1,2,3);
+        extendTrajectoryOrder(2,DetectorType.ECAL.getDetectorId(),1,4,7);
+        extendTrajectoryOrder(3,DetectorType.CVT.getDetectorId(),1,6,12);
+        extendTrajectoryOrder(3,DetectorType.CTOF.getDetectorId(),1);
+        extendTrajectoryOrder(3,DetectorType.CND.getDetectorId(),1);
+        extendTrajectoryOrder(4,DetectorType.BAND.getDetectorId(),1);
     }
 
-    private void addTrajectoryLayers(int region, int detector,int ... layers) {
-        if (!trajectoryLayers.containsKey(region)) {
-            trajectoryLayers.put(region, new LinkedHashMap());
+    private void extendTrajectoryOrder(int region, int detector,int ... layers) {
+        if (!trajectoryOrder.containsKey(region)) {
+            trajectoryOrder.put(region, new LinkedHashMap());
         }
-        if (!trajectoryLayers.get(region).containsKey(detector)) {
-            trajectoryLayers.get(region).put(detector, new ArrayList());
+        if (!trajectoryOrder.get(region).containsKey(detector)) {
+            trajectoryOrder.get(region).put(detector, new ArrayList());
         }
         for (int layer : layers) {
-            trajectoryLayers.get(region).get(detector).add(layer);
+            trajectoryOrder.get(region).get(detector).add(layer);
         }
     }
     
@@ -255,8 +257,8 @@ public class Clas12Event implements DetectorEvent {
 
         else {
 
-            for (int detector : trajectoryLayers.get(region).keySet()) {
-                for (int layer : trajectoryLayers.get(region).get(detector)) {
+            for (int detector : trajectoryOrder.get(region).keySet()) {
+                for (int layer : trajectoryOrder.get(region).get(detector)) {
                     if (DetectorType.ECAL.getDetectorId() == detector) {
                         if (getPosition(v3,detector,layer,index,FRAME_GLOBAL)) {
                             path.addPoint(v3.x(),v3.y(),v3.z());
@@ -312,13 +314,12 @@ public class Clas12Event implements DetectorEvent {
         double ret=-1;
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
-            Bank bank = detectorTypeBanks.get(detector);
             switch (type) {
                 case RESPONSE_ENERGY:
-                    ret=bank.getFloat("energy",dindex);
+                    ret=detectorTypeBanks.get(detector).getFloat("energy",dindex);
                     break;
                 case RESPONSE_TIME:
-                    ret=bank.getFloat("time",dindex);
+                    ret=detectorTypeBanks.get(detector).getFloat("time",dindex);
                     break;
                 default:
                     break;
@@ -331,8 +332,8 @@ public class Clas12Event implements DetectorEvent {
     public boolean getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
-            Bank bank = detectorTypeBanks.get(detector);
             if (frame==FRAME_LOCAL) {
+                Bank bank = detectorTypeBanks.get(detector);
                 if (detector==DetectorType.ECAL.getDetectorId()) {
                     v3.setXYZ(bank.getFloat("lu",dindex),
                             bank.getFloat("lv",dindex),
@@ -342,6 +343,7 @@ public class Clas12Event implements DetectorEvent {
                 return true;
             }
             else if (frame==FRAME_GLOBAL) {
+                Bank bank = detectorTypeBanks.get(detector);
                 v3.setXYZ(bank.getFloat("x",dindex),
                         bank.getFloat("y",dindex),
                         bank.getFloat("z",dindex)
