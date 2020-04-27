@@ -15,10 +15,15 @@ import org.jlab.jnp.physics.Vector3;
  */
 public interface DetectorEvent {
     
-    public static int ENERGY = 1;
-    public static int TRIGGERBITS  = 45;
-    public static int RUNNUMBER    = 46;
-    public static int EVENTNUMBER  = 47;
+    public static final int FRAME_LOCAL       = 1;
+    public static final int FRAME_GLOBAL      = 2;
+    public static final int RESPONSE_ENERGY   = 1;
+    public static final int RESPONSE_TIME     = 2;
+    public static final int PROP_TRIGGERBITS  = 45;
+    public static final int PROP_RUNNUMBER    = 46;
+    public static final int PROP_EVENTNUMBER  = 47;
+    public static final int PROP_UNIXTIME     = 48;
+    public static final int PROP_TIMESTAMP    = 49;
     
     public int     getPid(int index);
     public void    setPid(int pid, int index);

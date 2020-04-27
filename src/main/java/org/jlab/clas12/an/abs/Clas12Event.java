@@ -25,23 +25,20 @@ import org.jlab.jnp.physics.Vector3;
  */
 public class Clas12Event implements DetectorEvent {
  
-    static final int FRAME_LOCAL=1;
-    static final int FRAME_GLOBAL=2;
-    static final int RESPONSE_ENERGY=1;
-    static final int RESPONSE_TIME=2;
-   
     private HipoChain hipoChain      = null;
     private Event     hipoEvent      = new Event();
     //-------------------------------------------------
     // These are the banks to be read from data stream
     // Each bank name is configurable....
-    private Bank      particleBank   = null;
-    private Bank      trackBank   = null;
+    private Bank      particleBank = null;
+    private Bank      trackBank = null;
     private Bank      trajectoryBank = null;
-    private Bank      calorimeterBank   = null;
-    private Bank      scintillatorBank   = null;
+    private Bank      calorimeterBank = null;
+    private Bank      scintillatorBank = null;
     private Bank      cherenkovBank = null;
     private Bank      forwardtaggerBank = null;
+    private Bank      runConfigBank = null;
+    private Bank      recEventBank = null;
     
     private final String particleBankName     = "REC::Particle";
     private final String trackBankName        = "REC::Track";
@@ -50,6 +47,8 @@ public class Clas12Event implements DetectorEvent {
     private final String scintillatorBankName = "REC::Scintillator";
     private final String cherenkovBankName    = "REC::Cherenkov";
     private final String forwardtaggerBankName= "REC::ForwardTagger";
+    private final String runConfigBankName    = "RUN::config";
+    private final String recEventBankName     = "REC::Event";
   
     private final Set <Bank> detectorBanks = new HashSet();
     private final Map <Integer,Bank> detectorTypeBanks = new HashMap();
@@ -67,6 +66,14 @@ public class Clas12Event implements DetectorEvent {
 
         SchemaFactory factory = hipoChain.getSchemaFactory();
         //factory.show();
+        if(factory.hasSchema(runConfigBankName)==true){
+            runConfigBank = new Bank(factory.getSchema(runConfigBankName));
+            System.out.println(">>>>> initalizing config bank : " + runConfigBankName);
+        }
+        if(factory.hasSchema(recEventBankName)==true){
+            recEventBank = new Bank(factory.getSchema(runConfigBankName));
+            System.out.println(">>>>> initalizing config bank : " + recEventBankName);
+        }
         if(factory.hasSchema(particleBankName)==true){
             particleBank = new Bank(factory.getSchema(particleBankName));
             System.out.println(">>>>> initalizing particle bank : " + particleBankName);
@@ -172,7 +179,7 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void setPid(int pid, int index) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        particleBank.putInt("pid", index, pid);
     }
 
     @Override
@@ -306,7 +313,12 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void combine(LorentzVector vL, int[] pid, int[] order, int[] sign, double[] mass) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // duplicate code or make new array?
+        int[] index=new int[pid.length];
+        for(int i = 0; i < pid.length; i++){
+            index[i] = this.getIndex(pid[i],order[i]);
+        }
+        combine(vL,index,sign,mass);
     }
 
     @Override
@@ -369,19 +381,45 @@ public class Clas12Event implements DetectorEvent {
     }
 
     @Override
+    /**
+     * Note, REC::Particle.status is already assigned (and non-zero), but the
+     * 5th digit is available.  It's a short so it can take values 0/1/2 with
+     * overflowing.
+     */
     public void setStatus(int index, int status) {
-        if(particleBank!=null) particleBank.putShort("status", index, (short) status);
+        //if (status<0 || status>2) this will not work!!!
+        if(particleBank!=null) {
+            short s = particleBank.getShort("status", index);
+            s += s<0 ? -10000*status : 10000*status;
+            particleBank.putShort("status", index, s);
+        }
     }
 
     @Override
     public int getStatus(int index) {
-        if(particleBank!=null) return particleBank.getInt("status",index);
+        if(particleBank!=null) {
+            return Math.abs(particleBank.getInt("status",index))/10000;
+        }
         return -1;
     }
 
     @Override
     public long getEventProperty(int type, int flag) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        long ret=-1;
+        switch (type) {
+            case PROP_RUNNUMBER:
+                ret = runConfigBank.getLong("run",0);
+                break;
+            case PROP_EVENTNUMBER:
+                ret = runConfigBank.getLong("event",0);
+                break;
+            case PROP_TRIGGERBITS:
+                ret = runConfigBank.getLong("trigger",0);
+                break;
+            default:
+                break;
+        }
+        return ret;
     }
 
     @Override
