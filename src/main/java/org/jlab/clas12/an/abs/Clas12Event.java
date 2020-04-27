@@ -1,7 +1,10 @@
 package org.jlab.clas12.an.abs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jlab.clas12.an.base.DetectorEvent;
@@ -50,6 +53,7 @@ public class Clas12Event implements DetectorEvent {
     private final Set <Bank> detectorBanks = new HashSet();
     private final Reference detectorRefs = new ReferenceMap();
     private final Reference trajectoryRefs = new ReferenceMap();
+    private final Map <Integer,Map <Integer,List<Integer>> > trajectoryLayers = new HashMap<>();
     
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
@@ -102,6 +106,31 @@ public class Clas12Event implements DetectorEvent {
         detectorTypeBanks.put(DetectorType.BAND.getDetectorId(),scintillatorBank);
         detectorTypeBanks.put(DetectorType.HTCC.getDetectorId(),cherenkovBank);
         detectorTypeBanks.put(DetectorType.LTCC.getDetectorId(),cherenkovBank);
+
+        addTrajectoryLayers(1,DetectorType.FTTRK.getDetectorId(),1);
+        addTrajectoryLayers(1,DetectorType.FTHODO.getDetectorId(),1);
+        addTrajectoryLayers(1,DetectorType.FTCAL.getDetectorId(),1);
+        addTrajectoryLayers(2,DetectorType.HTCC.getDetectorId(),1);
+        addTrajectoryLayers(2,DetectorType.DC.getDetectorId(),1,6,12);
+        addTrajectoryLayers(2,DetectorType.LTCC.getDetectorId(),1);
+        addTrajectoryLayers(2,DetectorType.FTOF.getDetectorId(),1,2,3);
+        addTrajectoryLayers(2,DetectorType.ECAL.getDetectorId(),1,4,7);
+        addTrajectoryLayers(3,DetectorType.CVT.getDetectorId(),1,6,12);
+        addTrajectoryLayers(3,DetectorType.CTOF.getDetectorId(),1);
+        addTrajectoryLayers(3,DetectorType.CND.getDetectorId(),1);
+        addTrajectoryLayers(4,DetectorType.BAND.getDetectorId(),1);
+    }
+
+    private void addTrajectoryLayers(int region, int detector,int ... layers) {
+        if (!trajectoryLayers.containsKey(region)) {
+            trajectoryLayers.put(region, new LinkedHashMap());
+        }
+        if (!trajectoryLayers.get(region).containsKey(detector)) {
+            trajectoryLayers.get(region).put(detector, new ArrayList());
+        }
+        for (int layer : layers) {
+            trajectoryLayers.get(region).get(detector).add(layer);
+        }
     }
     
     private void loadReferences() {
@@ -182,6 +211,8 @@ public class Clas12Event implements DetectorEvent {
     @Override
     public void getPath(Path3D path, int index) {
             
+        final int region = getRegion(index);
+            
         Vector3 v3=new Vector3();
 
         path.clear();
@@ -197,7 +228,7 @@ public class Clas12Event implements DetectorEvent {
                 path.addPoint(0.0,0.0,0.0);
             }
 
-            switch (this.getRegion(index)) {
+            switch (region) {
                 case 1:
                     break;
                 case 2:
@@ -224,49 +255,19 @@ public class Clas12Event implements DetectorEvent {
 
         else {
 
-            switch (this.getRegion(index)) {
-                case 1:
-                    break;
-                case 2:
-                    // FIXME:  init some Map of relevant detector/layer instead of this repitition
-                    // Or prune trajectoryRefs upon init and then use its natural ordering?
-                    if (getTrackPosition(v3,DetectorType.HTCC.getDetectorId(),1,index,FRAME_GLOBAL)) {
-                        path.addPoint(v3.x(),v3.y(),v3.z());
-                    }
-                    for (int layer : DetectorLayer.DC_LAYERS) {
-                        if (getTrackPosition(v3,DetectorType.DC.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+            for (int detector : trajectoryLayers.get(region).keySet()) {
+                for (int layer : trajectoryLayers.get(region).get(detector)) {
+                    if (DetectorType.ECAL.getDetectorId() == detector) {
+                        if (getPosition(v3,detector,layer,index,FRAME_GLOBAL)) {
                             path.addPoint(v3.x(),v3.y(),v3.z());
                         }
                     }
-                    if (getTrackPosition(v3,DetectorType.LTCC.getDetectorId(),1,index,FRAME_GLOBAL)) {
-                        path.addPoint(v3.x(),v3.y(),v3.z());
-                    }
-                    for (int layer : DetectorLayer.FTOF_LAYERS) {
-                        if (getTrackPosition(v3,DetectorType.FTOF.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                    else {
+                        if (getTrackPosition(v3,detector,layer,index,FRAME_GLOBAL)) {
                             path.addPoint(v3.x(),v3.y(),v3.z());
                         }
                     }
-                    for (int layer : DetectorLayer.ECAL_LAYERS) {
-                        if (getTrackPosition(v3,DetectorType.ECAL.getDetectorId(),layer,index,FRAME_GLOBAL)) {
-                            path.addPoint(v3.x(),v3.y(),v3.z());
-                        }
-                    }
-                    break;
-                case 3:
-                    for (int layer : DetectorLayer.CVT_LAYERS) {
-                        if (getTrackPosition(v3,DetectorType.CVT.getDetectorId(),layer,index,FRAME_GLOBAL)) {
-                            path.addPoint(v3.x(),v3.y(),v3.z());
-                        }
-                    }
-                    if (getTrackPosition(v3,DetectorType.CTOF.getDetectorId(),1,index,FRAME_GLOBAL)) {
-                        path.addPoint(v3.x(),v3.y(),v3.z());
-                    }
-                    if (getTrackPosition(v3,DetectorType.CND.getDetectorId(),1,index,FRAME_GLOBAL)) {
-                        path.addPoint(v3.x(),v3.y(),v3.z());
-                    }
-                    break;
-                default:
-                    break;
+                }
             }
         }
     }

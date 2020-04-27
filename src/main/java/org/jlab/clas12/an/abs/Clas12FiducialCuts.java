@@ -86,6 +86,7 @@ public class Clas12FiducialCuts {
     }
     public static void main(String[] args){
         String filename = "/Users/gavalian/Work/DataSpace/clas12dst/rec_clas_005038.evio.00390-00394.hipo";
+        //String filename = "/Users/baltzell/data/CLAS12/rg-a/recon/005153/dst_clas_005153.evio.00010-00014.hipo";
         
         DetectorManager.getInstance().initFiducial();
         Clas12FiducialCuts.redoECAL();
