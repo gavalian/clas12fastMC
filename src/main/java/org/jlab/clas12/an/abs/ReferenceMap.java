@@ -21,7 +21,7 @@ public class ReferenceMap implements Reference {
             cache.put(source,new HashMap<>());
         }
         if (!cache.get(source).containsKey(type)) {
-            cache.get(source).put(type,new TreeMap<Integer,Integer>());
+            cache.get(source).put(type,new HashMap<Integer,Integer>());
         }
         cache.get(source).get(type).put(layer,dest);
     }
@@ -34,14 +34,6 @@ public class ReferenceMap implements Reference {
         return -1;
     }
     
-    @Override
-    public Set<Integer> get(int source,int type) {
-        if (contains(source,type)) {
-            return cache.get(source).get(type).keySet();
-        }
-        return null;
-    }
-
     @Override
     public boolean contains(int source,int type) {
         if (cache.containsKey(source)) {

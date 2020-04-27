@@ -23,10 +23,10 @@ import org.jlab.jnp.physics.Vector3;
 public class Clas12Event implements DetectorEvent {
  
     static final int FRAME_LOCAL=1;
-    static final int FRAME_GLOBAL=1;
+    static final int FRAME_GLOBAL=2;
     static final int RESPONSE_ENERGY=1;
     static final int RESPONSE_TIME=2;
-    
+   
     private HipoChain hipoChain      = null;
     private Event     hipoEvent      = new Event();
     //-------------------------------------------------
@@ -274,6 +274,7 @@ public class Clas12Event implements DetectorEvent {
     @Override
     public boolean readNext() {
         detectorRefs.clear();
+        trajectoryRefs.clear();
         if(hipoChain.hasNext()==false) return false;
         hipoChain.nextEvent(hipoEvent);
         if(particleBank != null) hipoEvent.read(particleBank);

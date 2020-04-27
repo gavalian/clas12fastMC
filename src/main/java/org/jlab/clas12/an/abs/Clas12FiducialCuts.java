@@ -140,8 +140,11 @@ public class Clas12FiducialCuts {
                 vecL.setXYZ(0.0, 0.0, 0.0);
                 vecP.setXYZ(0.0, 0.0, 0.0);
                 
-                clas12Event.getPosition(vecL, DetectorType.ECAL.getDetectorId(),DetectorLayer.PCAL_U, photonIndex,2);
-                clas12Event.getPosition(vecP, DetectorType.ECAL.getDetectorId(),DetectorLayer.EC_INNER_U, photonIndex,2);
+                clas12Event.getPosition(vecL, DetectorType.ECAL.getDetectorId(),
+                        DetectorLayer.PCAL_U, photonIndex,Clas12Event.FRAME_LOCAL);
+                clas12Event.getPosition(vecP, DetectorType.ECAL.getDetectorId(),
+                        DetectorLayer.PCAL_U, photonIndex,Clas12Event.FRAME_GLOBAL);
+
                 System.out.printf("%3d %5d %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n",
                         statusFid,status,
                         vecL.x(),vecL.y(),vecL.z(),
