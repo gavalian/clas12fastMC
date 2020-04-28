@@ -2,11 +2,9 @@ package org.jlab.clas12.an.abs;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.jlab.clas12.an.base.DetectorEvent;
 import org.jlab.clas12.fastMC.base.DetectorLayer;
 import org.jlab.clas12.fastMC.base.DetectorType;
@@ -41,7 +39,7 @@ public class Clas12Event implements DetectorEvent {
     private Bank      calorimeterBank = null;
     private Bank      scintillatorBank = null;
     private Bank      cherenkovBank = null;
-    private Bank      forwardtaggerBank = null;
+    private Bank      taggerBank = null;
     private Bank      runConfigBank = null;
     private Bank      recEventBank = null;
     
@@ -51,11 +49,10 @@ public class Clas12Event implements DetectorEvent {
     private final String calorimeterBankName  = "REC::Calorimeter";
     private final String scintillatorBankName = "REC::Scintillator";
     private final String cherenkovBankName    = "REC::Cherenkov";
-    private final String forwardtaggerBankName= "REC::ForwardTagger";
+    private final String taggerBankName= "REC::ForwardTagger";
     private final String runConfigBankName    = "RUN::config";
     private final String recEventBankName     = "REC::Event";
   
-    private final Set <Bank> detectorBanks = new HashSet();
     private final Map <Integer,Bank> detectorTypeBanks = new HashMap();
     private final Map <Integer,Map <Integer,List<Integer>> > trajectoryOrder = new HashMap<>();
     
@@ -76,7 +73,7 @@ public class Clas12Event implements DetectorEvent {
             System.out.println(">>>>> initalizing config bank : " + runConfigBankName);
         }
         if(factory.hasSchema(recEventBankName)==true){
-            recEventBank = new Bank(factory.getSchema(runConfigBankName));
+            recEventBank = new Bank(factory.getSchema(recEventBankName));
             System.out.println(">>>>> initalizing config bank : " + recEventBankName);
         }
         if(factory.hasSchema(particleBankName)==true){
@@ -103,13 +100,13 @@ public class Clas12Event implements DetectorEvent {
             cherenkovBank = new Bank(factory.getSchema(cherenkovBankName));
             System.out.println(">>>>> initalizing detector bank : " + cherenkovBankName);
         }
-        if(factory.hasSchema(forwardtaggerBankName)==true){
-            forwardtaggerBank = new Bank(factory.getSchema(forwardtaggerBankName));
-            System.out.println(">>>>> initalizing detector bank : " + forwardtaggerBankName);
+        if(factory.hasSchema(taggerBankName)==true){
+            taggerBank = new Bank(factory.getSchema(taggerBankName));
+            System.out.println(">>>>> initalizing detector bank : " + taggerBankName);
         }
         
-        detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),forwardtaggerBank);
-        detectorTypeBanks.put(DetectorType.FTHODO.getDetectorId(),forwardtaggerBank);
+        detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),taggerBank);
+        detectorTypeBanks.put(DetectorType.FTHODO.getDetectorId(),taggerBank);
         detectorTypeBanks.put(DetectorType.ECAL.getDetectorId(),calorimeterBank);
         detectorTypeBanks.put(DetectorType.CTOF.getDetectorId(),scintillatorBank);
         detectorTypeBanks.put(DetectorType.FTOF.getDetectorId(),scintillatorBank);
@@ -117,8 +114,6 @@ public class Clas12Event implements DetectorEvent {
         detectorTypeBanks.put(DetectorType.BAND.getDetectorId(),scintillatorBank);
         detectorTypeBanks.put(DetectorType.HTCC.getDetectorId(),cherenkovBank);
         detectorTypeBanks.put(DetectorType.LTCC.getDetectorId(),cherenkovBank);
-
-        detectorBanks.addAll(detectorTypeBanks.values());
 
         // note, adding and layer ordering here dictates path ordering:
         // (this can be dropped completely if trajectory bank is ordered by path)
@@ -148,13 +143,28 @@ public class Clas12Event implements DetectorEvent {
     }
     
     private void loadReferences() {
-        for (Bank bank : detectorBanks) {
-            for (int ii=0; ii<bank.getRows(); ii++) {
-                int pindex = bank.getShort("pindex", ii);
-                int dtype = bank.getByte("detector",ii);
-                int layer = bank.getByte("layer",ii);
-                detectorRefs.put(pindex,dtype,layer,ii);
-            }
+        for (int ii=0; ii<scintillatorBank.getRows(); ii++) {
+            int pindex = scintillatorBank.getShort("pindex", ii);
+            int dtype = scintillatorBank.getByte("detector",ii);
+            int layer = scintillatorBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<calorimeterBank.getRows(); ii++) {
+            int pindex = calorimeterBank.getShort("pindex", ii);
+            int dtype = calorimeterBank.getByte("detector",ii);
+            int layer = calorimeterBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<taggerBank.getRows(); ii++) {
+            int pindex = taggerBank.getShort("pindex", ii);
+            int dtype = taggerBank.getByte("detector",ii);
+            int layer = taggerBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<cherenkovBank.getRows(); ii++) {
+            int pindex = cherenkovBank.getShort("pindex", ii);
+            int dtype = cherenkovBank.getByte("detector",ii);
+            detectorRefs.put(pindex,dtype,1,ii);
         }
         for (int ii=0; ii<trackBank.getRows(); ii++) {
             int pindex = trackBank.getShort("pindex", ii);
@@ -173,6 +183,12 @@ public class Clas12Event implements DetectorEvent {
     public int getPid(int index) {
         if(particleBank!=null) return particleBank.getInt(0,index);
         return -1;
+    }
+
+    @Override
+    public int getCharge(int index) {
+        if(particleBank!=null) return particleBank.getByte(8,index);
+        return -999;
     }
 
     public int getRegion(int index) {
@@ -297,6 +313,8 @@ public class Clas12Event implements DetectorEvent {
         if(calorimeterBank != null) hipoEvent.read(calorimeterBank);
         if(scintillatorBank != null) hipoEvent.read(scintillatorBank);
         if(cherenkovBank != null) hipoEvent.read(cherenkovBank);
+        if(runConfigBank != null) hipoEvent.read(runConfigBank);
+        if(recEventBank != null) hipoEvent.read(recEventBank);
         loadReferences();
         return true;
     }
@@ -333,9 +351,18 @@ public class Clas12Event implements DetectorEvent {
         if (dindex>=0) {
             switch (type) {
                 case RESPONSE_PATH:
-                    int tindex = this.trajectoryRefs.get(particle, detector, layer);
-                    if (tindex>=0) ret=trajectoryBank.getFloat("path",tindex);
-                    break;
+                    if (getCharge(particle)==0) {
+                        Vector3 start=new Vector3();
+                        Vector3 end=new Vector3();
+                        getPosition(end,detector,layer,particle,FRAME_GLOBAL);
+                        getVertex(start,0);
+                        ret = end.sub(start).mag();
+                    }
+                    else {
+                        int tindex = this.trajectoryRefs.get(particle, detector, layer);
+                        if (tindex>=0) ret=trajectoryBank.getFloat("path",tindex);
+                        break;
+                    }
                 case RESPONSE_ENERGY:
                     ret=detectorTypeBanks.get(detector).getFloat("energy",dindex);
                     break;
@@ -346,7 +373,7 @@ public class Clas12Event implements DetectorEvent {
                     double time = getResponse(RESPONSE_TIME,detector,layer,particle);
                     double path = getResponse(RESPONSE_PATH,detector,layer,particle);
                     double stime = recEventBank.getFloat("startTime",0);
-                    ret = path / (time-stime);
+                    ret = path / (time-stime) / 30.0;
                     break;
                 default:
                     throw new UnsupportedOperationException("Not supported yet.");
@@ -361,8 +388,8 @@ public class Clas12Event implements DetectorEvent {
             switch (type) {
                 case RESPONSE_ENERGY:
                     Bank bank = detectorTypeBanks.get(detector);
+                    ret=0;
                     for (int layer : DetectorLayer.ECAL_LAYERS) {
-                        ret=0;
                         int dindex = detectorRefs.get(particle,DetectorType.ECAL.getDetectorId(),layer);
                         if (dindex>=0) ret += bank.getFloat("energy",dindex);
                     }

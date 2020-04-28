@@ -26,7 +26,8 @@ public interface DetectorEvent {
     public static final int PROP_EVENTNUMBER  = 47;
     public static final int PROP_UNIXTIME     = 48;
     public static final int PROP_TIMESTAMP    = 49;
-    
+   
+    public int     getCharge(int index);
     public int     getPid(int index);
     public void    setPid(int pid, int index);
     public int     count();
