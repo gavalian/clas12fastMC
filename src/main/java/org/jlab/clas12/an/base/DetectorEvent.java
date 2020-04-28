@@ -19,6 +19,8 @@ public interface DetectorEvent {
     public static final int FRAME_GLOBAL      = 2;
     public static final int RESPONSE_ENERGY   = 1;
     public static final int RESPONSE_TIME     = 2;
+    public static final int RESPONSE_BETA     = 3;
+    public static final int RESPONSE_PATH     = 4;
     public static final int PROP_TRIGGERBITS  = 45;
     public static final int PROP_RUNNUMBER    = 46;
     public static final int PROP_EVENTNUMBER  = 47;

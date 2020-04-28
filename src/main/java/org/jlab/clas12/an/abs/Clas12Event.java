@@ -24,7 +24,12 @@ import org.jlab.jnp.physics.Vector3;
  * @author baltzell
  */
 public class Clas12Event implements DetectorEvent {
- 
+
+    public static final int REGION_TAGGER=1;
+    public static final int REGION_FORWARD=2;
+    public static final int REGION_CENTRAL=3;
+    public static final int REGION_BACKWARD=4;
+
     private HipoChain hipoChain      = null;
     private Event     hipoEvent      = new Event();
     //-------------------------------------------------
@@ -238,27 +243,27 @@ public class Clas12Event implements DetectorEvent {
             }
 
             switch (region) {
-                case 1:
+                case REGION_TAGGER:
                     break;
-                case 2:
+                case REGION_FORWARD:
                     for (int layer : DetectorLayer.ECAL_LAYERS) {
                         if (getPosition(v3,DetectorType.ECAL.getDetectorId(),layer,index,FRAME_GLOBAL)) {
                             path.addPoint(v3.x(),v3.y(),v3.z());
                         }
                     }
                     break;
-                case 3:
+                case REGION_CENTRAL:
                     if (getPosition(v3,DetectorType.CND.getDetectorId(),1,index,FRAME_GLOBAL)) {
                         path.addPoint(v3.x(),v3.y(),v3.z());
                     }
                     break;
-                case 4:
+                case REGION_BACKWARD:
                     if (getPosition(v3,DetectorType.BAND.getDetectorId(),1,index,FRAME_GLOBAL)) {
                         path.addPoint(v3.x(),v3.y(),v3.z());
                     }
                     break;
                 default:
-                    break;
+                    throw new UnsupportedOperationException("Not supported yet.");
             }
         }
 
@@ -327,14 +332,43 @@ public class Clas12Event implements DetectorEvent {
         int dindex = detectorRefs.get(particle,detector,layer);
         if (dindex>=0) {
             switch (type) {
+                case RESPONSE_PATH:
+                    int tindex = this.trajectoryRefs.get(particle, detector, layer);
+                    if (tindex>=0) ret=trajectoryBank.getFloat("path",tindex);
+                    break;
                 case RESPONSE_ENERGY:
                     ret=detectorTypeBanks.get(detector).getFloat("energy",dindex);
                     break;
                 case RESPONSE_TIME:
                     ret=detectorTypeBanks.get(detector).getFloat("time",dindex);
                     break;
-                default:
+                case RESPONSE_BETA:
+                    double time = getResponse(RESPONSE_TIME,detector,layer,particle);
+                    double path = getResponse(RESPONSE_PATH,detector,layer,particle);
+                    double stime = recEventBank.getFloat("startTime",0);
+                    ret = path / (time-stime);
                     break;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+        return ret;
+    }
+    
+    public double getResponse(int type, int detector, int particle) {
+        double ret=-1;
+        if (detectorRefs.contains(particle,detector)) {
+            switch (type) {
+                case RESPONSE_ENERGY:
+                    Bank bank = detectorTypeBanks.get(detector);
+                    for (int layer : DetectorLayer.ECAL_LAYERS) {
+                        ret=0;
+                        int dindex = detectorRefs.get(particle,DetectorType.ECAL.getDetectorId(),layer);
+                        if (dindex>=0) ret += bank.getFloat("energy",dindex);
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
             }
         }
         return ret;
@@ -343,24 +377,25 @@ public class Clas12Event implements DetectorEvent {
     @Override
     public boolean getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
         int dindex = detectorRefs.get(particle,detector,layer);
+        Bank bank = detectorTypeBanks.get(detector);
         if (dindex>=0) {
-            if (frame==FRAME_LOCAL) {
-                Bank bank = detectorTypeBanks.get(detector);
-                if (detector==DetectorType.ECAL.getDetectorId()) {
-                    v3.setXYZ(bank.getFloat("lu",dindex),
-                            bank.getFloat("lv",dindex),
-                            bank.getFloat("lw",dindex)
+            switch (frame) {
+                case FRAME_LOCAL:
+                    if (detector==DetectorType.ECAL.getDetectorId()) {
+                        v3.setXYZ(bank.getFloat("lu",dindex),
+                                bank.getFloat("lv",dindex),
+                                bank.getFloat("lw",dindex)
+                        );
+                    }
+                    return true;
+                case FRAME_GLOBAL:
+                    v3.setXYZ(bank.getFloat("x",dindex),
+                            bank.getFloat("y",dindex),
+                            bank.getFloat("z",dindex)
                     );
-                }
-                return true;
-            }
-            else if (frame==FRAME_GLOBAL) {
-                Bank bank = detectorTypeBanks.get(detector);
-                v3.setXYZ(bank.getFloat("x",dindex),
-                        bank.getFloat("y",dindex),
-                        bank.getFloat("z",dindex)
-                );
-                return true;
+                    return true;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
             }
         }
         return false;
@@ -417,7 +452,7 @@ public class Clas12Event implements DetectorEvent {
                 ret = runConfigBank.getLong("trigger",0);
                 break;
             default:
-                break;
+                throw new UnsupportedOperationException("Not supported yet.");
         }
         return ret;
     }
