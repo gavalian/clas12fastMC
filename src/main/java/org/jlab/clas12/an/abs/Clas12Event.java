@@ -470,10 +470,10 @@ public class Clas12Event implements DetectorEvent {
         long ret=-1;
         switch (type) {
             case PROP_RUNNUMBER:
-                ret = runConfigBank.getLong("run",0);
+                ret = runConfigBank.getInt("run",0);
                 break;
             case PROP_EVENTNUMBER:
-                ret = runConfigBank.getLong("event",0);
+                ret = runConfigBank.getInt("event",0);
                 break;
             case PROP_TRIGGERBITS:
                 ret = runConfigBank.getLong("trigger",0);
