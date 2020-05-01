@@ -1,11 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jlab.clas12.an.abs;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.jlab.clas12.an.base.DetectorEvent;
+import org.jlab.clas12.fastMC.base.DetectorLayer;
+import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
@@ -17,46 +19,163 @@ import org.jlab.jnp.physics.Vector3;
 /**
  *
  * @author gavalian
+ * @author baltzell
  */
 public class Clas12Event implements DetectorEvent {
-    
+
+    public static final int REGION_TAGGER=1;
+    public static final int REGION_FORWARD=2;
+    public static final int REGION_CENTRAL=3;
+    public static final int REGION_BACKWARD=4;
+
     private HipoChain hipoChain      = null;
     private Event     hipoEvent      = new Event();
     //-------------------------------------------------
     // These are the banks to be read from data stream
     // Each bank name is configurable....
-    private Bank      particleBank   = null;
+    private Bank      particleBank = null;
+    private Bank      trackBank = null;
     private Bank      trajectoryBank = null;
-    private Bank      detectorBank   = null;
+    private Bank      calorimeterBank = null;
+    private Bank      scintillatorBank = null;
+    private Bank      cherenkovBank = null;
+    private Bank      taggerBank = null;
+    private Bank      runConfigBank = null;
+    private Bank      recEventBank = null;
     
-    private String particleBankName    = "REC::Particle";
-    private String trajectoryBankName  = "REC::Traj";
-    private String detectorBankName    = "REC::Calorimeter";
+    private final String particleBankName     = "REC::Particle";
+    private final String trackBankName        = "REC::Track";
+    private final String trajectoryBankName   = "REC::Traj";
+    private final String calorimeterBankName  = "REC::Calorimeter";
+    private final String scintillatorBankName = "REC::Scintillator";
+    private final String cherenkovBankName    = "REC::Cherenkov";
+    private final String taggerBankName= "REC::ForwardTagger";
+    private final String runConfigBankName    = "RUN::config";
+    private final String recEventBankName     = "REC::Event";
+  
+    private final Map <Integer,Bank> detectorTypeBanks = new HashMap();
+    private final Map <Integer,Map <Integer,List<Integer>> > trajectoryOrder = new HashMap<>();
     
-    
-    private Reference  particleReference = new ReferenceMap();
+    private final Reference detectorRefs = new ReferenceMap();
+    private final Reference trajectoryRefs = new ReferenceMap();
     
     public Clas12Event(HipoChain chain){
         hipoChain = chain;
         initialize();
     }
-    
+   
     private void initialize(){
+
         SchemaFactory factory = hipoChain.getSchemaFactory();
         //factory.show();
+        if(factory.hasSchema(runConfigBankName)==true){
+            runConfigBank = new Bank(factory.getSchema(runConfigBankName));
+            System.out.println(">>>>> initalizing config bank : " + runConfigBankName);
+        }
+        if(factory.hasSchema(recEventBankName)==true){
+            recEventBank = new Bank(factory.getSchema(recEventBankName));
+            System.out.println(">>>>> initalizing config bank : " + recEventBankName);
+        }
         if(factory.hasSchema(particleBankName)==true){
             particleBank = new Bank(factory.getSchema(particleBankName));
             System.out.println(">>>>> initalizing particle bank : " + particleBankName);
         }
-        
+        if(factory.hasSchema(trackBankName)==true){
+            trackBank = new Bank(factory.getSchema(trackBankName));
+            System.out.println(">>>>> initalizing track bank : " + trackBankName);
+        }
         if(factory.hasSchema(trajectoryBankName)==true){
             trajectoryBank = new Bank(factory.getSchema(trajectoryBankName));
             System.out.println(">>>>> initalizing trajectory bank : " + trajectoryBankName);
         }
+        if(factory.hasSchema(calorimeterBankName)==true){
+            calorimeterBank = new Bank(factory.getSchema(calorimeterBankName));
+            System.out.println(">>>>> initalizing detector bank : " + calorimeterBankName);
+        }
+        if(factory.hasSchema(scintillatorBankName)==true){
+            scintillatorBank = new Bank(factory.getSchema(scintillatorBankName));
+            System.out.println(">>>>> initalizing detector bank : " + scintillatorBankName);
+        }
+        if(factory.hasSchema(cherenkovBankName)==true){
+            cherenkovBank = new Bank(factory.getSchema(cherenkovBankName));
+            System.out.println(">>>>> initalizing detector bank : " + cherenkovBankName);
+        }
+        if(factory.hasSchema(taggerBankName)==true){
+            taggerBank = new Bank(factory.getSchema(taggerBankName));
+            System.out.println(">>>>> initalizing detector bank : " + taggerBankName);
+        }
         
-        if(factory.hasSchema(detectorBankName)==true){
-            detectorBank = new Bank(factory.getSchema(detectorBankName));
-            System.out.println(">>>>> initalizing detector bank : " + detectorBankName);
+        detectorTypeBanks.put(DetectorType.FTCAL.getDetectorId(),taggerBank);
+        detectorTypeBanks.put(DetectorType.FTHODO.getDetectorId(),taggerBank);
+        detectorTypeBanks.put(DetectorType.ECAL.getDetectorId(),calorimeterBank);
+        detectorTypeBanks.put(DetectorType.CTOF.getDetectorId(),scintillatorBank);
+        detectorTypeBanks.put(DetectorType.FTOF.getDetectorId(),scintillatorBank);
+        detectorTypeBanks.put(DetectorType.CND.getDetectorId(),scintillatorBank);
+        detectorTypeBanks.put(DetectorType.BAND.getDetectorId(),scintillatorBank);
+        detectorTypeBanks.put(DetectorType.HTCC.getDetectorId(),cherenkovBank);
+        detectorTypeBanks.put(DetectorType.LTCC.getDetectorId(),cherenkovBank);
+
+        // note, adding and layer ordering here dictates path ordering:
+        // (this can be dropped completely if trajectory bank is ordered by path)
+        extendTrajectoryOrder(1,DetectorType.FTHODO.getDetectorId(),1);
+        extendTrajectoryOrder(1,DetectorType.FTCAL.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.HTCC.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.DC.getDetectorId(),1,6,12);
+        extendTrajectoryOrder(2,DetectorType.LTCC.getDetectorId(),1);
+        extendTrajectoryOrder(2,DetectorType.FTOF.getDetectorId(),1,2,3);
+        extendTrajectoryOrder(2,DetectorType.ECAL.getDetectorId(),1,4,7);
+        extendTrajectoryOrder(3,DetectorType.CVT.getDetectorId(),1,6,12);
+        extendTrajectoryOrder(3,DetectorType.CTOF.getDetectorId(),1);
+        extendTrajectoryOrder(3,DetectorType.CND.getDetectorId(),1);
+        extendTrajectoryOrder(4,DetectorType.BAND.getDetectorId(),1);
+    }
+
+    private void extendTrajectoryOrder(int region, int detector,int ... layers) {
+        if (!trajectoryOrder.containsKey(region)) {
+            trajectoryOrder.put(region, new LinkedHashMap());
+        }
+        if (!trajectoryOrder.get(region).containsKey(detector)) {
+            trajectoryOrder.get(region).put(detector, new ArrayList());
+        }
+        for (int layer : layers) {
+            trajectoryOrder.get(region).get(detector).add(layer);
+        }
+    }
+    
+    private void loadReferences() {
+        for (int ii=0; ii<scintillatorBank.getRows(); ii++) {
+            int pindex = scintillatorBank.getShort("pindex", ii);
+            int dtype = scintillatorBank.getByte("detector",ii);
+            int layer = scintillatorBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<calorimeterBank.getRows(); ii++) {
+            int pindex = calorimeterBank.getShort("pindex", ii);
+            int dtype = calorimeterBank.getByte("detector",ii);
+            int layer = calorimeterBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<taggerBank.getRows(); ii++) {
+            int pindex = taggerBank.getShort("pindex", ii);
+            int dtype = taggerBank.getByte("detector",ii);
+            int layer = taggerBank.getByte("layer",ii);
+            detectorRefs.put(pindex,dtype,layer,ii);
+        }
+        for (int ii=0; ii<cherenkovBank.getRows(); ii++) {
+            int pindex = cherenkovBank.getShort("pindex", ii);
+            int dtype = cherenkovBank.getByte("detector",ii);
+            detectorRefs.put(pindex,dtype,1,ii);
+        }
+        for (int ii=0; ii<trackBank.getRows(); ii++) {
+            int pindex = trackBank.getShort("pindex", ii);
+            int dtype = trackBank.getByte("detector",ii);
+            detectorRefs.put(pindex,dtype,1,ii);
+        }
+        for (int ii=0; ii<trajectoryBank.getRows(); ii++) {
+            int pindex = trajectoryBank.getShort("pindex", ii);
+            int dtype = trajectoryBank.getByte("detector",ii);
+            int layer = trajectoryBank.getByte("layer",ii);
+            trajectoryRefs.put(pindex,dtype,layer,ii);
         }
     }
     
@@ -67,8 +186,21 @@ public class Clas12Event implements DetectorEvent {
     }
 
     @Override
+    public int getCharge(int index) {
+        if(particleBank!=null) return particleBank.getByte(8,index);
+        return -999;
+    }
+
+    public int getRegion(int index) {
+        // technically the regions aren't exclusive and this is a bitmask:
+        final int stat = particleBank.getInt("status",index)/1000;
+        // but we ignore that here and just get the least significant bit:
+        return (int)((Math.log10(stat & -stat)) / Math.log10(2)) + 1; 
+    }
+
+    @Override
     public void setPid(int pid, int index) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        particleBank.putInt("pid", index, pid);
     }
 
     @Override
@@ -108,38 +240,82 @@ public class Clas12Event implements DetectorEvent {
 
     @Override
     public void getPath(Path3D path, int index) {
-        int charge = this.particleBank.getInt("charge", index);
-        if(charge==0){
-            path.clear();
-            path.addPoint(0.0,0.0,0.0);
-            int nrowsECAL = this.detectorBank.getRows();
-            for(int i = 0 ; i < nrowsECAL; i++){
-                int pindex = this.detectorBank.getInt("pindex", i);
-                if(pindex==index){
-                    path.addPoint(this.detectorBank.getFloat("x", i), 
-                            this.detectorBank.getFloat("y", i), 
-                            this.detectorBank.getFloat("z", i)
-                            );
+            
+        final int region = getRegion(index);
+            
+        Vector3 v3=new Vector3();
+
+        path.clear();
+
+        if (this.particleBank.getInt("charge", index)==0) {
+                    
+            // use trigger particle's vertex, if there is one:
+            if (particleBank.getShort("status",0)<0) {
+                getVertex(v3,0);
+                path.addPoint(v3.x(),v3.y(),v3.z());
+            }
+            else {
+                path.addPoint(0.0,0.0,0.0);
+            }
+
+            switch (region) {
+                case REGION_TAGGER:
+                    break;
+                case REGION_FORWARD:
+                    for (int layer : DetectorLayer.ECAL_LAYERS) {
+                        if (getPosition(v3,DetectorType.ECAL.getDetectorId(),layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
+                    break;
+                case REGION_CENTRAL:
+                    if (getPosition(v3,DetectorType.CND.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
+                    break;
+                case REGION_BACKWARD:
+                    if (getPosition(v3,DetectorType.BAND.getDetectorId(),1,index,FRAME_GLOBAL)) {
+                        path.addPoint(v3.x(),v3.y(),v3.z());
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+
+        else {
+
+            for (int detector : trajectoryOrder.get(region).keySet()) {
+                for (int layer : trajectoryOrder.get(region).get(detector)) {
+                    if (DetectorType.ECAL.getDetectorId() == detector) {
+                        if (getPosition(v3,detector,layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
+                    else {
+                        if (getTrackPosition(v3,detector,layer,index,FRAME_GLOBAL)) {
+                            path.addPoint(v3.x(),v3.y(),v3.z());
+                        }
+                    }
                 }
             }
-        } else {
-            path.clear();
-            path.addPoint(0.0, 0.0,  0.0);
-            path.addPoint(0.0, 0.0, 10.0);
         }
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public boolean readNext() {
+        detectorRefs.clear();
+        trajectoryRefs.clear();
         if(hipoChain.hasNext()==false) return false;
         hipoChain.nextEvent(hipoEvent);
-        if(particleBank != null) {
-            hipoEvent.read(particleBank);
-            //System.out.println(" particle rows = " + particleBank.getRows());
-        }
+        if(particleBank != null) hipoEvent.read(particleBank);
         if(trajectoryBank != null) hipoEvent.read(trajectoryBank);
-        if(detectorBank != null) hipoEvent.read(detectorBank);
+        if(calorimeterBank != null) hipoEvent.read(calorimeterBank);
+        if(scintillatorBank != null) hipoEvent.read(scintillatorBank);
+        if(cherenkovBank != null) hipoEvent.read(cherenkovBank);
+        if(runConfigBank != null) hipoEvent.read(runConfigBank);
+        if(recEventBank != null) hipoEvent.read(recEventBank);
+        loadReferences();
         return true;
     }
 
@@ -156,65 +332,161 @@ public class Clas12Event implements DetectorEvent {
                 vL.sub(px, py, pz, mass[i]);
             }
         }
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void combine(LorentzVector vL, int[] pid, int[] order, int[] sign, double[] mass) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // duplicate code or make new array?
+        int[] index=new int[pid.length];
+        for(int i = 0; i < pid.length; i++){
+            index[i] = this.getIndex(pid[i],order[i]);
+        }
+        combine(vL,index,sign,mass);
     }
 
     @Override
-    public double getResponse(int type, int detector, int particle) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void getPosition(Vector3 v3, int detector, int particle, int frame) {
-        int nrowsECAL = this.detectorBank.getRows();
-        for(int i = 0 ; i < nrowsECAL; i++){
-            int pindex = this.detectorBank.getInt("pindex", i);
-            int  layer = this.detectorBank.getInt("layer", i);
-            if(pindex==particle&&layer==1){
-                if(detector==1){
-                    v3.setXYZ(
-                            detectorBank.getFloat("lu",i),
-                            detectorBank.getFloat("lv",i),
-                            detectorBank.getFloat("lw",i)
-                    );
-                }
-                if(detector==2){
-                    v3.setXYZ(
-                            detectorBank.getFloat("x",i),
-                            detectorBank.getFloat("y",i),
-                            detectorBank.getFloat("z",i)
-                    );
-                }
+    public double getResponse(int type, int detector, int layer, int particle) {
+        double ret=-1;
+        int dindex = detectorRefs.get(particle,detector,layer);
+        if (dindex>=0) {
+            switch (type) {
+                case RESPONSE_PATH:
+                    if (getCharge(particle)==0) {
+                        Vector3 start=new Vector3();
+                        Vector3 end=new Vector3();
+                        getPosition(end,detector,layer,particle,FRAME_GLOBAL);
+                        getVertex(start,0);
+                        ret = end.sub(start).mag();
+                    }
+                    else {
+                        int tindex = this.trajectoryRefs.get(particle, detector, layer);
+                        if (tindex>=0) ret=trajectoryBank.getFloat("path",tindex);
+                        break;
+                    }
+                case RESPONSE_ENERGY:
+                    ret=detectorTypeBanks.get(detector).getFloat("energy",dindex);
+                    break;
+                case RESPONSE_TIME:
+                    ret=detectorTypeBanks.get(detector).getFloat("time",dindex);
+                    break;
+                case RESPONSE_BETA:
+                    double time = getResponse(RESPONSE_TIME,detector,layer,particle);
+                    double path = getResponse(RESPONSE_PATH,detector,layer,particle);
+                    double stime = recEventBank.getFloat("startTime",0);
+                    ret = path / (time-stime) / 30.0;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
             }
+        }
+        return ret;
+    }
+    
+    public double getResponse(int type, int detector, int particle) {
+        double ret=-1;
+        if (detectorRefs.contains(particle,detector)) {
+            switch (type) {
+                case RESPONSE_ENERGY:
+                    Bank bank = detectorTypeBanks.get(detector);
+                    ret=0;
+                    for (int layer : DetectorLayer.ECAL_LAYERS) {
+                        int dindex = detectorRefs.get(particle,DetectorType.ECAL.getDetectorId(),layer);
+                        if (dindex>=0) ret += bank.getFloat("energy",dindex);
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean getPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
+        int dindex = detectorRefs.get(particle,detector,layer);
+        Bank bank = detectorTypeBanks.get(detector);
+        if (dindex>=0) {
+            switch (frame) {
+                case FRAME_LOCAL:
+                    if (detector==DetectorType.ECAL.getDetectorId()) {
+                        v3.setXYZ(bank.getFloat("lu",dindex),
+                                bank.getFloat("lv",dindex),
+                                bank.getFloat("lw",dindex)
+                        );
+                    }
+                    return true;
+                case FRAME_GLOBAL:
+                    v3.setXYZ(bank.getFloat("x",dindex),
+                            bank.getFloat("y",dindex),
+                            bank.getFloat("z",dindex)
+                    );
+                    return true;
+                default:
+                    throw new UnsupportedOperationException("Not supported yet.");
+            }
+        }
+        return false;
+    }
+    
+    public boolean getTrackPosition(Vector3 v3, int detector, int layer, int particle, int frame) {
+        int dindex = trajectoryRefs.get(particle,detector,layer);
+        if (dindex>=0) {
+            if (frame==FRAME_GLOBAL) {
+                v3.setXYZ(trajectoryBank.getFloat("x",dindex),
+                        trajectoryBank.getFloat("y",dindex),
+                        trajectoryBank.getFloat("z",dindex)
+                );
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    /**
+     * Note, REC::Particle.status is already assigned (and non-zero), but the
+     * 5th digit is available.  It's a short so it can take values 0/1/2 with
+     * overflowing.
+     */
+    public void setStatus(int index, int status) {
+        //if (status<0 || status>2) this will not work!!!
+        if(particleBank!=null) {
+            short s = particleBank.getShort("status", index);
+            s += s<0 ? -10000*status : 10000*status;
+            particleBank.putShort("status", index, s);
         }
     }
 
     @Override
-    public void setStatus(int index, int status) {
-        if(particleBank!=null) particleBank.putShort("status", index, (short) status);
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public int getStatus(int index) {
-        if(particleBank!=null) return particleBank.getInt("status",index);
+        if(particleBank!=null) {
+            return Math.abs(particleBank.getInt("status",index))/10000;
+        }
         return -1;
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public long getEventProperty(int type, int flag) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        long ret=-1;
+        switch (type) {
+            case PROP_RUNNUMBER:
+                ret = runConfigBank.getInt("run",0);
+                break;
+            case PROP_EVENTNUMBER:
+                ret = runConfigBank.getInt("event",0);
+                break;
+            case PROP_TRIGGERBITS:
+                ret = runConfigBank.getLong("trigger",0);
+                break;
+            default:
+                throw new UnsupportedOperationException("Not supported yet.");
+        }
+        return ret;
     }
 
     @Override
     public int getProperty(int propertyType, int particle) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }

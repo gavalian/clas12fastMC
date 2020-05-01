@@ -12,9 +12,10 @@ package org.jlab.clas12.fastMC.base;
 public enum DetectorRegion {
     
     UNDEFINED (0,"UNDEFINED"),
-    FORWARD   (1, "FORWARD"),
-    TAGGER    (2, "TAGGER"),
-    CENTRAL   (3, "CENTRAL");
+    TAGGER    (1, "TAGGER"),
+    FORWARD   (2, "FORWARD"),
+    CENTRAL   (3, "CENTRAL"),
+    BACKWARDS (4, "BACKWARDS");
     
     private final int    regionType;
     private final String regionName;

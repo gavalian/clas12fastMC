@@ -6,6 +6,7 @@
 package org.jlab.clas12.an.abs;
 
 import org.jlab.clas12.an.abs.DetectorFiducialCuts.ParticleFiducialConfig;
+import org.jlab.clas12.fastMC.base.DetectorLayer;
 import org.jlab.groot.data.DataLine;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
@@ -85,6 +86,7 @@ public class Clas12FiducialCuts {
     }
     public static void main(String[] args){
         String filename = "/Users/gavalian/Work/DataSpace/clas12dst/rec_clas_005038.evio.00390-00394.hipo";
+        //String filename = "/Users/baltzell/data/CLAS12/rg-a/recon/005153/dst_clas_005153.evio.00010-00014.hipo";
         
         DetectorManager.getInstance().initFiducial();
         Clas12FiducialCuts.redoECAL();
@@ -139,8 +141,11 @@ public class Clas12FiducialCuts {
                 vecL.setXYZ(0.0, 0.0, 0.0);
                 vecP.setXYZ(0.0, 0.0, 0.0);
                 
-                clas12Event.getPosition(vecL, 1, photonIndex,0);
-                clas12Event.getPosition(vecP, 2, photonIndex,0);
+                clas12Event.getPosition(vecL, DetectorType.ECAL.getDetectorId(),
+                        DetectorLayer.PCAL_U, photonIndex,Clas12Event.FRAME_LOCAL);
+                clas12Event.getPosition(vecP, DetectorType.ECAL.getDetectorId(),
+                        DetectorLayer.PCAL_U, photonIndex,Clas12Event.FRAME_GLOBAL);
+
                 System.out.printf("%3d %5d %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n",
                         statusFid,status,
                         vecL.x(),vecL.y(),vecL.z(),
