@@ -32,18 +32,25 @@ public class Clas12FiducialCuts {
         ParticleFiducialConfig   photon = new ParticleFiducialConfig(22);
         ParticleFiducialConfig electron = new ParticleFiducialConfig(11);
 
-        proton.addDetector(DetectorManager.getInstance().getDetector(DetectorType.FTOF));
-        photon.addDetector(DetectorManager.getInstance().getDetector(DetectorType.ECAL));
+        proton.addDetector(
+                DetectorManager.getInstance().getDetector(DetectorType.FTOF,10,"default"));
+        photon.addDetector(
+                DetectorManager.getInstance().getDetector(DetectorType.ECAL,10,"default"));
         
-        electron.addDetector(DetectorManager.getInstance().getDetector(DetectorType.FTOF));
-        electron.addDetector(DetectorManager.getInstance().getDetector(DetectorType.ECAL));
+        electron.addDetector(
+                DetectorManager.getInstance().getDetector(DetectorType.FTOF,10,"default"));
+        electron.addDetector(
+                DetectorManager.getInstance().getDetector(DetectorType.ECAL,10,"default"));
         
         fiducial.addConfig(photon).addConfig(proton).addConfig(electron);
     }
     
     public static void redoECAL(){
-        ECALDetector det = (ECALDetector) DetectorManager.getInstance().getDetector(DetectorType.ECAL);
-        det.getBounds().clear();
+        
+        ECALDetector det = (ECALDetector) DetectorManager.getInstance().getDetector(
+                DetectorType.ECAL,10,"default");
+        //det.getBounds().clear();
+        
         float[] SURFACE_LOSE = new float[]{
             89.90000f,   -189.74298f,      0.00000f,
           -280.97011f,      0.00000f,      0.00000f,
@@ -80,7 +87,7 @@ public class Clas12FiducialCuts {
             mesh.translateXYZ(0.0, 0.0, 698.28000 - 0.50000);
             mesh.rotateY(rotateY);
             mesh.rotateZ(rotateZ);
-            det.getBounds().add(mesh);
+            //det.getBounds().add(mesh);
         }
 
     }

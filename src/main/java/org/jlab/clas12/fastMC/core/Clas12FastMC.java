@@ -74,6 +74,7 @@ public class Clas12FastMC {
         }
         
         detectorConfigs.get(pid).addConfiguration(region, detector, hits);
+        //System.out.println("");
     }
     
     public void addConfiguration(int pid, DetectorRegion region, String detector, int hits){
@@ -102,18 +103,23 @@ public class Clas12FastMC {
     }*/
     
     public void show(){
+        System.out.printf(">>>>>>>>>>>>>>>>>>>> %s <<<<<<<<<<<<<<<<<<<<\n","FAST MC CONFIGURATION BEGIN");
         Collection<Clas12Region> configs = detectorConfigs.values();
         for(Clas12Region config: configs){
             System.out.println(config.toString());
         }
+        System.out.printf(">>>>>>>>>>>>>>>>>>>> %s <<<<<<<<<<<<<<<<<<<<\n","FAST MC CONFIGURATION  END ");
     }
     
     public DetectorRegion getRegion(Particle part){
         int pid = part.pid();
         
         if(detectorConfigs.containsKey(pid)==false) return DetectorRegion.UNDEFINED;
+
         Path3D path = particleSwimmer.getParticlePath(part);
+        //System.out.println(" passed this part for pid = " + pid);
         //path.show();
+        
         Clas12Region region = detectorConfigs.get(pid);
         return region.getStatus(path);
     }
@@ -127,6 +133,8 @@ public class Clas12FastMC {
         for(int i = 0; i < count; i++){
             Particle part = event.getParticle(i);
             DetectorRegion region = getRegion(part);
+            //System.out.println(part.toLundString());
+            //System.out.println("region = " + region);
             if(region!=DetectorRegion.UNDEFINED){
                 Particle pnew = Particle.copyFrom(part);
                 if(applyResolutions==true){

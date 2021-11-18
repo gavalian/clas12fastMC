@@ -19,7 +19,7 @@ import org.jlab.jnp.geom.prim.Point3D;
 public class DetectorDebug {
     public static void main(String[] args){
         DetectorManager.getInstance().initFiducial();
-        Detector ecal = DetectorManager.getInstance().getDetector(DetectorType.ECAL);
+        Detector ecal = DetectorManager.getInstance().getDetector(DetectorType.ECAL,10,"default");
         
         Path3D path   = new Path3D();
         Plane3D plane = new Plane3D();

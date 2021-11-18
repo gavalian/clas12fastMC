@@ -19,11 +19,19 @@ import cnuphys.swimZ.SwimZ;
 import cnuphys.swimZ.SwimZException;
 import cnuphys.swimZ.SwimZResult;
 import cnuphys.swimZ.SwimZStateVector;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jlab.clas12.fastMC.tests.SwimmerTest;
 import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.physics.Particle;
@@ -44,21 +52,45 @@ public class ParticleSwimmer {
     private  Swimmer swimmer = null;
     private  SwimZ   swimmerZ = null;
     
-    public ParticleSwimmer(){
-        //this.initFiled(-1.0, 1.0);
-        this.initMagneticField(-1.0, -1.0);
+    public ParticleSwimmer(){                
+        //this.initMagneticField(-1.0, -1.0);                
+        this.initMagneticFieldResources(-1.0, -1.0);
         swimmer = new Swimmer();
     }
     
     public ParticleSwimmer(double torusScale, double solenoidScale){
-        this.initMagneticField(torusScale, solenoidScale);
+        
+        this.initMagneticFieldResources(torusScale, solenoidScale);
+        
         if(compositeField == null){
             System.out.println(" NULL FIELD");
         } else {
             System.out.println(" NOT A NULL FIELD");
-        }
+        }                
         swimmer = new Swimmer();
         swimmerZ = new SwimZ();
+    }
+    
+    
+    private void initMagneticFieldResources(Double torusScale, Double solenoidScale){
+        
+
+        String filetorus = "/data/magfield/clas12-fieldmap-torus.dat";
+        String filesolenoid = "/data/magfield/clas12-fieldmap-solenoid.dat";
+        
+         mf = MagneticFields.getInstance();
+         InputStream    in_torus = getClass().getResourceAsStream(filetorus);
+         InputStream in_solenoid = getClass().getResourceAsStream(filesolenoid);
+         
+
+        try {
+            mf.initializeMagneticFieldsFromFile(in_torus,in_solenoid,filetorus,filesolenoid);
+            //mf.initializeMagneticFields(jnpDataDirectory + "/etc/data/magfield", "clas12-fieldmap-torus.dat", "clas12-fieldmap-solenoid.dat");
+        } catch (MagneticFieldInitializationException | FileNotFoundException ex) {
+            Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        
     }
     
     
@@ -79,6 +111,7 @@ public class ParticleSwimmer {
          
          mf = MagneticFields.getInstance();
          try {
+             
              mf.initializeMagneticFields(jnpDataDirectory + "/etc/data/magfield", "clas12-fieldmap-torus.dat", "clas12-fieldmap-solenoid.dat");
          } catch (FileNotFoundException | MagneticFieldInitializationException ex) {
              Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
@@ -235,5 +268,48 @@ public class ParticleSwimmer {
            e.printStackTrace();
        }
         return null;
+    }
+    
+    
+    public void readResourceFile(){
+        try {
+            InputStream in = getClass().getResourceAsStream("/data/magfield/clas12-fieldmap-solenoid.dat");
+            DataInputStream dos = new DataInputStream(in);
+            int magicnum = dos.readInt();
+            System.out.printf("%8d -> %X\n",magicnum,magicnum);
+        } catch (IOException ex) {
+            Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void main(String[] args) throws FileNotFoundException{
+        
+        
+        ParticleSwimmer sw = new ParticleSwimmer();
+        //sw.readResourceFile();        
+        /*
+        try {
+            ParticleSwimmer sw = new ParticleSwimmer();
+            
+            URL url = sw.getClass().getResource("/data/magfield/clas12-fieldmap-torus.dat");
+            System.out.println(url);
+            
+            System.out.println("file : " + url.getFile());
+            System.out.println("\n\n>>> URI : " + url.toURI().toString());
+            
+            
+            File f = new File(url.toURI());
+            System.out.println(" file exists : " + f.exists());
+            //System.out.println("ref  : " + url.getQuery());
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(ParticleSwimmer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+       */
+        //FileReader fileReader = new FileReader("src/main/resources/file.txt");
+        //BufferedReader bufferedReader = new BufferedReader(fileReader);
+        
+        //Stream<String> lines = bufferedReader.lines();
+                
     }
 }
