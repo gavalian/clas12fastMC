@@ -45,12 +45,6 @@
 	</dependency>
 
 	<dependency>
-          <groupId>org.jlab.clas</groupId>
-          <artifactId>clas-math</artifactId>
-          <version>6.5.9-SNAPSHOT</version>
-	</dependency>
-
-	<dependency>
           <groupId>gov.nist.math</groupId>
           <artifactId>jama</artifactId>
           <version>1.0.3</version>
