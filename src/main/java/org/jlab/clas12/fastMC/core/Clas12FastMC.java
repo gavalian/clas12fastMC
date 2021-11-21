@@ -139,6 +139,7 @@ public class Clas12FastMC {
         if(detectorConfigs.containsKey(part.pid())==false) return new Path3D();
         return particleSwimmer.getParticlePath(part);
     }
+    
     public List<DetectorHit> getDetectorHits(){return this.eventDetectorHits;};
     
     public PhysicsEvent processEvent(PhysicsEvent event){
