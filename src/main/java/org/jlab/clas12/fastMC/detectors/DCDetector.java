@@ -65,7 +65,8 @@ public class DCDetector extends Detector {
     private Triangle3D createSector(int slNumber){
         System.out.println("height = " + height(slNumber));
         System.out.println("distance = " + distanceBelowX(slNumber));
-        return new Triangle3D(height(slNumber) - distanceBelowX(slNumber), -height(slNumber)*Math.tan(Math.toRadians(30)), 0,
+        return new Triangle3D(
+                height(slNumber) - distanceBelowX(slNumber), -height(slNumber)*Math.tan(Math.toRadians(30)), 0,
                 height(slNumber) - distanceBelowX(slNumber), height(slNumber)*Math.tan(Math.toRadians(30)),  0,
                 -distanceBelowX(slNumber),              0,                      0);
     }

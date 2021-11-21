@@ -267,7 +267,10 @@ public class ParticleSwimmer {
        } catch (RungeKuttaException e) {
            e.printStackTrace();
        }
-        return null;
+        Path3D pnull = new Path3D();
+        pnull.addPoint(0.0, 0.0, 0.0);
+        pnull.addPoint(0.5, 0.5, 0.5);
+        return pnull;
     }
     
     

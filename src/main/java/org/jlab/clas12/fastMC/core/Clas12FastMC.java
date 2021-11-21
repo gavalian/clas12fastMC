@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.jlab.clas12.fastMC.base.DetectorHit;
 import org.jlab.clas12.fastMC.base.DetectorRegion;
 import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.clas12.fastMC.core.Clas12Region.DetectorRegionConfig;
@@ -39,6 +40,7 @@ public class Clas12FastMC {
     private Map<DetectorType,Detector>    detectors = new HashMap<>();
     private EventResolution               resolutions = new EventResolution();
     private boolean                  applyResolutions = false;
+    private List<DetectorHit>       eventDetectorHits = new ArrayList<>();
     
     public Clas12FastMC(){
         //detectors = new ArrayList<>();
@@ -65,6 +67,8 @@ public class Clas12FastMC {
     
     public void initResolutions(){
         resolutions.addResolution(  11, DetectorRegion.FORWARD, new ElectronResolution());
+        resolutions.addResolution( 211, DetectorRegion.FORWARD, new ElectronResolution());
+        resolutions.addResolution(-211, DetectorRegion.FORWARD, new ElectronResolution());
         resolutions.addResolution(2212, DetectorRegion.FORWARD, new ProtonResolution());
     }
     
@@ -112,6 +116,7 @@ public class Clas12FastMC {
     }
     
     public DetectorRegion getRegion(Particle part){
+        
         int pid = part.pid();
         
         if(detectorConfigs.containsKey(pid)==false) return DetectorRegion.UNDEFINED;
@@ -124,19 +129,45 @@ public class Clas12FastMC {
         return region.getStatus(path);
     }
     
+    public DetectorRegion getRegion(Path3D path, int pid){
+        if(detectorConfigs.containsKey(pid)==false) return DetectorRegion.UNDEFINED;
+        Clas12Region region = detectorConfigs.get(pid);
+        return region.getStatus(path);
+    }
+    
+    public Path3D getPath(Particle part){
+        if(detectorConfigs.containsKey(part.pid())==false) return new Path3D();
+        return particleSwimmer.getParticlePath(part);
+    }
+    public List<DetectorHit> getDetectorHits(){return this.eventDetectorHits;};
     
     public PhysicsEvent processEvent(PhysicsEvent event){
         PhysicsEvent fastMCevent = new PhysicsEvent();
         fastMCevent.beamParticle().copy(event.beamParticle());
         fastMCevent.targetParticle().copy(event.targetParticle());
+        
+        eventDetectorHits.clear();
+        
         int count = event.count();
+        int accepted = 0;
+        
         for(int i = 0; i < count; i++){
             Particle part = event.getParticle(i);
-            DetectorRegion region = getRegion(part);
+            Path3D   path = this.getPath(part);
+            DetectorRegion region = this.getRegion(path, part.pid());
+            //gg-DetectorRegion region = getRegion(part);
             //System.out.println(part.toLundString());
             //System.out.println("region = " + region);
             if(region!=DetectorRegion.UNDEFINED){
                 Particle pnew = Particle.copyFrom(part);
+                Clas12Region rconfig = detectorConfigs.get(part.pid());
+                List<DetectorHit> hits = rconfig.getHits(path);
+                DetectorHit.setIndex(hits, accepted);accepted++;
+                //System.out.printf("particle : %d\n",pnew.pid());
+                //for(DetectorHit h : hits){
+                //    System.out.println(h);
+                //}
+                this.eventDetectorHits.addAll(hits);
                 if(applyResolutions==true){
                     resolutions.applyResolution(pnew, region);
                 }
@@ -145,6 +176,43 @@ public class Clas12FastMC {
         }
         return fastMCevent;
     }
+    
+    public void processEvent(PhysicsEvent event, FastMCResponse response){
+        response.physicsEvent.clear();
+
+        response.physicsEvent.beamParticle().copy(event.beamParticle());
+        response.physicsEvent.targetParticle().copy(event.targetParticle());
+        
+        response.detectorHits.clear();
+        
+        int count = event.count();
+        int accepted = 0;
+        
+        for(int i = 0; i < count; i++){
+            Particle part = event.getParticle(i);
+            Path3D   path = this.getPath(part);
+            DetectorRegion region = this.getRegion(path, part.pid());
+            //gg-DetectorRegion region = getRegion(part);
+            //System.out.println(part.toLundString());
+            //System.out.println("region = " + region);
+            if(region!=DetectorRegion.UNDEFINED){
+                Particle pnew = Particle.copyFrom(part);
+                Clas12Region rconfig = detectorConfigs.get(part.pid());
+                List<DetectorHit> hits = rconfig.getHits(path);
+                DetectorHit.setIndex(hits, accepted);accepted++;
+                //System.out.printf("particle : %d\n",pnew.pid());
+                //for(DetectorHit h : hits){
+                //    System.out.println(h);
+                //}
+                response.detectorHits.addAll(hits);
+                if(applyResolutions==true){
+                    resolutions.applyResolution(pnew, region);
+                }
+                response.physicsEvent.addParticle(pnew);
+            }
+        }
+    }
+    
     
     public boolean validHit(Particle part){        
         DetectorRegion region = getRegion(part);
@@ -194,16 +262,9 @@ public class Clas12FastMC {
         return true;
     }
     
-   /* public PhysicsEvent processEvent(PhysicsEvent physEvent){
-        PhysicsEvent fastMCEvent = new PhysicsEvent();
-        int count = physEvent.count();
-        for(int i = 0; i < count; i++){
-            Particle p = physEvent.getParticle(i);
-            if(this.validHit(p)){
-            //if(this.validHit(p)){           
-                fastMCEvent.addParticle(p);
-            }
-        }
-        return fastMCEvent;
-    }*/
+    public static class FastMCResponse {
+        public List<DetectorHit> detectorHits = new ArrayList<>();
+        public PhysicsEvent      physicsEvent = new PhysicsEvent();
+    }
+       
 }

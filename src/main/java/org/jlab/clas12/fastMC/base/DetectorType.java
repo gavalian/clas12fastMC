@@ -5,7 +5,7 @@ package org.jlab.clas12.fastMC.base;
  * @author gavalian
  */
 public enum DetectorType {
-      
+    
     UNDEFINED ( 0, "UNDEF"),
     BMT       ( 1, "BMT"),    
     BST       ( 2, "BST"),

@@ -39,6 +39,21 @@ public class LundConverter {
         Schema schema = schemaBuilder.build();
         return schema;
     }
+    
+    public static Schema getDetectorSchema(String name, int group, int id){        
+        SchemaBuilder schemaBuilder = new SchemaBuilder(name,group,id);
+        schemaBuilder.addEntry("det", "I", "");
+        schemaBuilder.addEntry("pindex", "I", "");
+        schemaBuilder.addEntry("x", "F", "");
+        schemaBuilder.addEntry("y", "F", "");
+        schemaBuilder.addEntry("z", "F", "");
+        schemaBuilder.addEntry("path", "F", "");
+        schemaBuilder.addEntry("time", "F", "");
+        schemaBuilder.addEntry("energy", "F", "");
+        Schema schema = schemaBuilder.build();
+        return schema;
+    }
+    
     public static PhysicsEvent keepFinal(PhysicsEvent event){
         PhysicsEvent keep = new PhysicsEvent();
         for(int i = 0; i < event.count(); i++){

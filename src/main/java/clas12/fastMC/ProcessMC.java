@@ -6,8 +6,10 @@
 package clas12.fastMC;
 
 import java.util.List;
+import org.jlab.clas12.fastMC.base.DetectorHit;
 import org.jlab.clas12.fastMC.base.DetectorRegion;
 import org.jlab.clas12.fastMC.core.Clas12FastMC;
+import org.jlab.clas12.fastMC.core.Clas12FastMC.FastMCResponse;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.data.Schema;
@@ -49,7 +51,9 @@ public class ProcessMC {
         chain.open();
         writer.getSchemaFactory().copy(chain.getSchemaFactory());
         Schema recSchema = LundConverter.getParticleSchema("rec::event",22002,1);
+        Schema detSchema = LundConverter.getDetectorSchema("rec::detector",22002,2);
         writer.getSchemaFactory().addSchema(recSchema);
+        writer.getSchemaFactory().addSchema(detSchema);
         writer.setCompressionType(1);
         writer.open(outputFile);
     }
@@ -61,6 +65,7 @@ public class ProcessMC {
     public ProcessMC setOutFilter(String filter){
         outFilter = new EventFilter(filter); return this;
     }
+    
     public void event2bank(Bank b, PhysicsEvent pe){
         int rows = pe.count();
         b.setRows(rows);
@@ -79,8 +84,22 @@ public class ProcessMC {
         }
     }
     
+    public void det2bank(Bank b, List<DetectorHit> dh){
+        int rows = dh.size();
+        b.setRows(rows);
+        for(int i = 0; i < rows; i++){
+            b.putInt("det", i, dh.get(i).getDetectorType().getDetectorId());
+            b.putInt("pindex", i, dh.get(i).getIndex());
+            b.putFloat("x", i, (float) dh.get(i).getHitPosition().x());
+            b.putFloat("y", i, (float) dh.get(i).getHitPosition().y());
+            b.putFloat("z", i, (float) dh.get(i).getHitPosition().z());
+            b.putFloat("path", i, 0.0f);
+            b.putFloat("time", i, 0.0f);
+            b.putFloat("energy", i, 0.0f);
+        }
+    }
     
-    public void process(){
+    public void process(int maxEvents){
         
         Event event = new Event();
         Bank mcParticle  = new Bank(chain.getSchemaFactory().getSchema("mc::event"));
@@ -88,10 +107,14 @@ public class ProcessMC {
         Schema recSchema = LundConverter.getParticleSchema("rec::event",22002,1);
         Bank   recParticle = new Bank(recSchema);
                 
+        Schema detSchema = LundConverter.getDetectorSchema("rec::detector", 22002, 2);
+        Bank   recDetector = new Bank(detSchema);
+        
         int counter = 0; int counterFW = 0; int counterP = 0;
         ProgressPrintout progress = new ProgressPrintout();
         
         clas12FastMC.show();
+        FastMCResponse response = new FastMCResponse();
         
         while(chain.hasNext()==true){
             counter++;
@@ -103,13 +126,19 @@ public class ProcessMC {
             PhysicsEvent mcEvent = DataManager.getPhysicsEvent(10.6, mcParticle);
             //PhysicsEvent outEvent = new PhysicsEvent();
             if(mcFilter.isValid(mcEvent)==true){
-                PhysicsEvent recEvent = clas12FastMC.processEvent(mcEvent);            
-                if(outFilter.isValid(recEvent)==true){
-                    this.event2bank(recParticle, recEvent);
+                //PhysicsEvent recEvent = clas12FastMC.processEvent(mcEvent);
+                clas12FastMC.processEvent(mcEvent,response);
+                if(outFilter.isValid(response.physicsEvent)==true){
+                    this.event2bank(recParticle, response.physicsEvent);
+                    this.det2bank(recDetector, response.detectorHits);
+                    //recDetector.show();
                     event.write(recParticle);
+                    event.write(recDetector);
                     writer.addEvent(event);
                 }
             }
+            
+            if(maxEvents>0&&counter>maxEvents) break;
         }
         System.out.printf("===> isolated events # %d / %d / %d\n",
                 counter,counterP,counterFW);
@@ -149,7 +178,7 @@ public class ProcessMC {
         mc.setMCFilter(filter).setOutFilter(filter);
         mc.init();
         mc.open();
-        mc.process();
+        mc.process(-1);
     }
     
     public static void main(String[] args){        
@@ -164,6 +193,7 @@ public class ProcessMC {
         store.getOptionParser("-fastmc").addRequired("-o", "output file name");
         store.getOptionParser("-fastmc").addOption("-f", "X+:X-:Xn", "mc event filter");
         store.getOptionParser("-fastmc").addOption("-wf", "X+:X-:Xn", "output write filter");
+        store.getOptionParser("-fastmc").addOption("-n", "-1", "number of events to process");
         
         store.parse(args);
         
@@ -175,6 +205,7 @@ public class ProcessMC {
         
         if(store.getCommand().compareTo("-fastmc")==0){
             List<String>  files = store.getOptionParser("-fastmc").getInputList();
+            int           maxEvents = store.getOptionParser("-fastmc").getOption("-n").intValue();
             String       output = store.getOptionParser("-fastmc").getOption("-o").stringValue();
             String       filter = store.getOptionParser("-fastmc").getOption("-f").stringValue();
             String       outfilter = store.getOptionParser("-fastmc").getOption("-wf").stringValue();
@@ -185,7 +216,7 @@ public class ProcessMC {
             mc.init();
             mc.setMCFilter(filter).setOutFilter(outfilter);
             mc.open();
-            mc.process();
+            mc.process(maxEvents);
         }
         
         

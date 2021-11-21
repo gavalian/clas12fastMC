@@ -1,5 +1,6 @@
-package org.jlab.clas12.an.abs;
+package org.jlab.clas12.an.examples;
 
+import org.jlab.clas12.an.abs.Clas12Event;
 import org.jlab.clas12.fastMC.base.DetectorLayer;
 import org.jlab.clas12.fastMC.base.DetectorType;
 import org.jlab.groot.data.H1F;

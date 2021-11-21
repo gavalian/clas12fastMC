@@ -47,6 +47,22 @@ public class Clas12Region {
         }
         return true;
     }
+    /**
+     * Hits are returned from all detectors that intersects with Path3D
+     * object from particle
+     * @param path particle trajectory
+     * @return list of detector hits
+     */
+    public List<DetectorHit> getHits(Path3D path){
+       List<DetectorHit> hits = new ArrayList<>();
+       for(Map.Entry<DetectorRegion,List<DetectorRegionConfig>> entry : pidConfigs.entrySet()){
+           for(DetectorRegionConfig rc : entry.getValue()){
+               List<DetectorHit> h = rc.getHits(path);
+               hits.addAll(h);
+           }
+       }
+       return hits;
+    }
     
     public DetectorRegion getStatus(Path3D path){        
         for(Map.Entry<DetectorRegion,List<DetectorRegionConfig>> entry : pidConfigs.entrySet()){
@@ -55,8 +71,7 @@ public class Clas12Region {
         }
         return DetectorRegion.UNDEFINED;
     }
-    
-    
+        
     @Override
     public String toString(){
         StringBuilder str = new StringBuilder();
@@ -81,8 +96,12 @@ public class Clas12Region {
         
         public boolean validate(Path3D path){
             List<DetectorHit> detHits = detector.getHits(path);
-            if(detHits.size()>=acceptedHits) return true;
-            return false;
+            return detHits.size()>=acceptedHits;
+        }
+        
+        public List<DetectorHit> getHits(Path3D path){
+            List<DetectorHit> detHits = detector.getHits(path);            
+            return detHits;
         }
         
         @Override
