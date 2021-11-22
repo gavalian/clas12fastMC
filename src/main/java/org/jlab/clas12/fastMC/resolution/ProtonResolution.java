@@ -32,7 +32,7 @@ public class ProtonResolution implements ParticleModifier {
     }
     
     public double getP(Particle p){
-        return p.p()*0.07;
+        return p.p()*0.007;
     }
     
     public double getTheta(Particle p){

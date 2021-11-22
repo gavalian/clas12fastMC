@@ -35,7 +35,7 @@ public class ElectronResolution implements ParticleModifier {
     }
     
     public double getP(Particle p){
-        return p.p()*0.05;
+        return p.p()*0.005;
     }
     
     public double getTheta(Particle p){
