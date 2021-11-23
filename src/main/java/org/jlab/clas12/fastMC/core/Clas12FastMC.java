@@ -57,6 +57,32 @@ public class Clas12FastMC {
         initSwimmer(-1.0,-1.0);
     }
     
+    
+    public static Clas12FastMC clas12forward(){
+        Clas12FastMC clas12FastMC = new Clas12FastMC();
+        clas12FastMC.addConfiguration(2212, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(2212, DetectorRegion.FORWARD, "FTOF", 1);
+        // Different ways you can detect proton
+        // This is proton in forward detector
+        clas12FastMC.addConfiguration(211, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(211, DetectorRegion.FORWARD, "FTOF", 1);
+        
+        clas12FastMC.addConfiguration(-211, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(-211, DetectorRegion.FORWARD, "FTOF", 1);
+        
+        clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "FTOF", 1);
+        clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "ECAL", 1);                
+        
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD, "FTOF", 1);
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD, "ECAL", 1);
+        clas12FastMC.show();
+        
+        //clas12FastMC.initResolutions();
+        return clas12FastMC;
+    }
+    
     public void setResolution(boolean flag){
         this.applyResolutions = flag;
     }
@@ -65,11 +91,16 @@ public class Clas12FastMC {
         return this.resolutions;
     }
     
+    
+    
     public void initResolutions(){
-        resolutions.addResolution(  11, DetectorRegion.FORWARD, new ElectronResolution());
-        resolutions.addResolution( 211, DetectorRegion.FORWARD, new ElectronResolution());
-        resolutions.addResolution(-211, DetectorRegion.FORWARD, new ElectronResolution());
-        resolutions.addResolution(2212, DetectorRegion.FORWARD, new ProtonResolution());
+        resolutions.addResolution(   11, DetectorRegion.FORWARD, new ElectronResolution());
+        resolutions.addResolution(  211, DetectorRegion.FORWARD, ElectronResolution.forPid(211));
+        resolutions.addResolution( -211, DetectorRegion.FORWARD, ElectronResolution.forPid(-211));
+        resolutions.addResolution( 2212, DetectorRegion.FORWARD, new ProtonResolution());
+        resolutions.addResolution(-2212, DetectorRegion.FORWARD, ProtonResolution.forPid(-2212));
+        resolutions.addResolution(  321, DetectorRegion.FORWARD, ProtonResolution.forPid(321));
+        resolutions.addResolution( -321, DetectorRegion.FORWARD, ProtonResolution.forPid(-321));
     }
     
     public void addConfiguration(int pid, DetectorRegion region, Detector detector, int hits){

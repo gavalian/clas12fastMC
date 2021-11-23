@@ -164,6 +164,11 @@ public class ProcessMC {
         clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "FTOF", 1);
         clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "ECAL", 1);                
         
+        
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD,   "DC", 6);
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD, "FTOF", 1);
+        clas12FastMC.addConfiguration(-11, DetectorRegion.FORWARD, "ECAL", 1);   
+        
         clas12FastMC.show();
         //clas12FastMC.addConfiguration(11, DetectorRegion.FORWARD, "FTOF", 1);
     }

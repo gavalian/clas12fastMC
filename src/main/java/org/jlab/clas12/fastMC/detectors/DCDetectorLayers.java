@@ -98,6 +98,28 @@ public class DCDetectorLayers {
         return component;
     }
     
+    public String getHitsString(List<DetectorHit> hits){
+        int sector = hits.get(0).getSector();
+        StringBuilder str = new StringBuilder();
+        str.append(sector);
+        for(int i = 0; i < hits.size(); i++){
+            str.append(",").append(String.format("%.2f", (float) hits.get(i).getComponent()));            
+        }
+        return str.toString();
+    }
+    
+    public String getHitsStringSector(List<DetectorHit> hits){
+        int sector = hits.get(0).getSector();
+        StringBuilder str = new StringBuilder();
+        //str.append(sector);
+        for(int i = 0; i < hits.size(); i++){
+            double value = hits.get(i).getComponent()+(sector-1)*112;
+            if(i!=0) str.append(",");
+            str.append(String.format("%.2f", (float) value));            
+        }
+        return str.toString();
+    }
+    
     public List<DetectorHit> getHits(Path3D path){
         int sector = this.getSectorIntersection(path);
         List<DetectorHit>  hits = new ArrayList<>();
@@ -116,7 +138,7 @@ public class DCDetectorLayers {
                 }
                 if(flag==true){
                     int component = this.getComponent(path, sector, layer);
-                    DetectorHit hit = new DetectorHit(sector,layer,component);
+                    DetectorHit hit = new DetectorHit(sector+1,layer+1,component+1);
                     hits.add(hit);
                 }
             }

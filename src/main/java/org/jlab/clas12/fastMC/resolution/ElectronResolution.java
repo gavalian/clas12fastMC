@@ -15,7 +15,14 @@ import org.jlab.jnp.physics.PhysicsFactory;
  */
 public class ElectronResolution implements ParticleModifier {
     
-    private final int pid = 11;
+    private int pid = 11;
+    
+    
+    public static ElectronResolution forPid(int __id){
+        ElectronResolution er = new ElectronResolution();
+        er.pid = __id;
+        return er;
+    }
     
     @Override
     public void modify(Particle part){

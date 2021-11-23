@@ -15,7 +15,13 @@ import org.jlab.jnp.physics.PhysicsFactory;
  */
 public class ProtonResolution implements ParticleModifier {
     
-    private final int pid = 2212;
+    private int pid = 2212;
+    
+    public static ProtonResolution forPid(int __id){
+        ProtonResolution er = new ProtonResolution();
+        er.pid = __id;
+        return er;
+    }
     
     @Override
     public void modify(Particle part){
