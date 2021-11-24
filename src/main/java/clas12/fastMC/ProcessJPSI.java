@@ -25,7 +25,7 @@ import org.jlab.jnp.utils.benchmark.ProgressPrintout;
 public class ProcessJPSI {
     public static void main(String[] args){
 
-        String filename = "negative_sample_fmc.h5";
+        String filename = "positive_sample_fmc.h5";
         int label = 0;
         if(args.length>0) filename= args[0];
         if(args.length>1) label = Integer.parseInt(args[1]);
@@ -57,12 +57,14 @@ public class ProcessJPSI {
 
             if(first.pid()==2212){
                 //System.out.println(physRec.toLundString());            
-            Particle gelec = physGen.getParticle(0);
-            String   q2part = String.format("%.5f,%.5f,%.5f", 
-                    gelec.vector().p()/10.0,
-                    gelec.vector().theta()/Math.toRadians(10.0),
-                    (Math.PI + gelec.vector().phi())/(2.0*Math.PI)
-                    );
+                Particle gelec = physGen.getParticle(0);
+                String   q2part = String.format("%.5f,%.5f,%.5f", 
+                        gelec.vector().p()/10.0,
+                        gelec.vector().theta()/Math.toRadians(5.0),
+                        (Math.PI + gelec.vector().phi())/(2.0*Math.PI)
+                );
+                //System.out.printf("%d - theta = %f\n ",gelec.pid(),
+                //        gelec.vector().theta()*57.29);
             Particle elec = physRec.getParticleByPid(11,0);
             Particle pos  = physRec.getParticleByPid(-11,0);
             Particle prot = physRec.getParticleByPid(2212,0);
@@ -72,7 +74,8 @@ public class ProcessJPSI {
             List<DetectorHit> hits_pos  = dc.getHits(clas12FastMC.getPath(pos));
             
             
-            if(hits_elec.size()==36&&hits_pos.size()==36&&hits_prot.size()==36){
+            if(hits_elec.size()==36&&hits_pos.size()==36&&hits_prot.size()==36
+                    &&gelec.vector().theta()<Math.toRadians(5.0)){
                 StringBuilder str = new StringBuilder();
                 str.append(String.format("%d,%.4f,%.4f,%.4f,",label,
                         elec.vector().px(),elec.vector().py(),elec.vector().pz()
