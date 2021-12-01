@@ -159,10 +159,10 @@ public class DebugResolutions {
      */
     public static void main(String[] args){
         
-        /* String filename = "dis_generated_10M.hipo";
+        String filename = "dis_generated_10M.hipo";
         
         DebugResolutions res = new DebugResolutions();
-        res.processFile(filename);*/
-        DebugResolutions.produce(1000000);
+        res.processFile(filename);
+        //DebugResolutions.produce(1000000);
     }
 }

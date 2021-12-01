@@ -25,7 +25,7 @@ import org.jlab.jnp.utils.benchmark.ProgressPrintout;
 public class ProcessJPSI {
     public static void main(String[] args){
 
-        String filename = "positive_sample_fmc.h5";
+        String filename = "negative_sample_fmc.h5";
         int label = 0;
         if(args.length>0) filename= args[0];
         if(args.length>1) label = Integer.parseInt(args[1]);
@@ -50,6 +50,7 @@ public class ProcessJPSI {
             event.read(mcbank);
             
             progress.updateStatus();
+            
             PhysicsEvent physRec = DataManager.getPhysicsEvent(10.5, bank);
             PhysicsEvent physGen = DataManager.getPhysicsEvent(10.5, mcbank);
             
