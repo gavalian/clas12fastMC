@@ -114,24 +114,80 @@ public class DebugResolutions {
         }
     }
     
+    public static void fillfi(H1F h , Particle p){
+            h.fill((p.vector().phi()+Math.PI)/(2*Math.PI));
+    }
+    
+    public static String getFeatures12( List<DetectorHit>  hits){
+        StringBuilder str = new StringBuilder();
+        for(int i = 0; i < 6; i++){
+            str.append(",");
+            
+            int    index = i*6;
+            double summ = 0.0;
+            
+            for(int k = 0; k < 6; k++){
+                summ += hits.get(index+k).getComponent();
+            }
+            double mean = summ/6.0;
+            double valueDown = hits.get(index).getComponent();
+            double valueUp   = hits.get(index+5).getComponent();
+            double slope     = (valueUp-valueDown)/6.0;
+            str.append(String.format("%.4f,%.4f", mean/112.0,(slope+1.25)/2.5));
+        }
+        return str.toString();
+    }
+    
+    public static String getFeatures6( List<DetectorHit>  hits){
+        StringBuilder str = new StringBuilder();
+        for(int i = 0; i < 6; i++){
+            str.append(",");
+            double summ = 0.0;
+            int   index = i*6;
+            for(int k = 0; k < 6; k++){
+                summ += hits.get(index+k).getComponent();
+            }
+            str.append(String.format("%.4f", summ/6.0/112.0));
+        }
+        return str.toString();
+    }
+    
+    public static String getParticleString(Particle p){
+        double mom = (p.vector().p()-0.5)/5.0;
+        double tmin = Math.toRadians(5.0);
+        double tmax = Math.toRadians(45.0);
+        double theta = (p.vector().theta() - tmin)/(tmax-tmin);
+        double phi   = (p.vector().phi()+Math.PI)/(2*Math.PI);
+        return String.format("%.4f,%.4f,%.4f", mom,theta,phi);
+    }
+    
     public static void produce(int maxEvents){
         
-        TCanvas c = new TCanvas("-c-",1200,500);
+        TCanvas c = new TCanvas("-c-",1200,900);
         c.getCanvas().initTimer(2000);
         H2F     h2 = new H2F("h2",112,0.5,112.5,36,0.5,36.5);
-        c.draw(h2);
+        H1F     h3 = new H1F("h2",120,0.0,1.0);
+        c.divide(1, 2);
+        c.cd(0).draw(h2).cd(1).draw(h3);
         
         
         Clas12FastMC fmc = Clas12FastMC.clas12forward();
         DCDetectorLayers dc = new DCDetectorLayers();
         //Particle p = new Particle();
         ProgressPrintout progress = new ProgressPrintout();
-        TextFileWriter w = new TextFileWriter();
-        w.open("track_parameter.csv");
+        TextFileWriter w1 = new TextFileWriter();
+        w1.open("tracks_features_6.csv");
+        
+        TextFileWriter w2 = new TextFileWriter();
+        w2.open("tracks_features_12.csv");
+        
+        TextFileWriter w3 = new TextFileWriter();
+        w3.open("tracks_features_36.csv");
+        
         for(int i = 0; i < maxEvents; i++){
             progress.updateStatus();
-            Particle p = DebugResolutions.random(11, 0.3, 9.0, 
-                    Math.toRadians(2.0), Math.toRadians(45.0),
+            Particle p = DebugResolutions.random(11, 0.5, 5.5, 
+                    Math.toRadians(5.0), Math.toRadians(45.0),
                     0.0, Math.PI*2.0);
             
             Path3D path = fmc.getPath(p);
@@ -140,16 +196,29 @@ public class DebugResolutions {
             //System.out.printf("%4d : %s\n",hits.size(),p.vector().toString().replace("\\s+", " "));
             if(hits.size()==36){
                 /*System.out.printf("%4d : %s,%s\n",
-                        hits.size(),p.vector().toString(),
-                        dc.getHitsString(hits));*/
-                String data = String.format("%.4f,%.4f,%.4f,%s", p.vector().p(),
-                    p.vector().theta(),p.vector().phi(),dc.getHitsString(hits));
-                //System.out.println(data);
-                w.writeString(data);
-                DebugResolutions.fill(h2, hits);
+                hits.size(),p.vector().toString(),
+                dc.getHitsString(hits));*/
+                int sector = hits.get(0).getSector();
+                if(sector==3){
+                    
+                    String part = DebugResolutions.getParticleString(p);
+                    String data3 = String.format("%s,%s", part,dc.getHitsString(hits));
+                    
+                    String data1 = String.format("%s,%d%s", part,sector,DebugResolutions.getFeatures6(hits));
+                    String data2 = String.format("%s,%d%s", part,sector,DebugResolutions.getFeatures12(hits));
+                    
+                    //System.out.println(data);
+                    w3.writeString(data3);
+                    w1.writeString(data1);
+                    w2.writeString(data2);
+                    DebugResolutions.fill(h2, hits);
+                    DebugResolutions.fillfi(h3, p);
+                }
             }
         }
-        w.close();
+        w1.close();
+        w2.close();
+        w3.close();
         System.out.println(">>>> DONE");
     }
     /**
@@ -162,7 +231,7 @@ public class DebugResolutions {
         String filename = "dis_generated_10M.hipo";
         
         DebugResolutions res = new DebugResolutions();
-        res.processFile(filename);
-        //DebugResolutions.produce(1000000);
+        //res.processFile(filename);
+        DebugResolutions.produce(1200*5000);
     }
 }

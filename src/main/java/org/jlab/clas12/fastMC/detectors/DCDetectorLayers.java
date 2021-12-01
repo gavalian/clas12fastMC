@@ -103,7 +103,7 @@ public class DCDetectorLayers {
         StringBuilder str = new StringBuilder();
         str.append(sector);
         for(int i = 0; i < hits.size(); i++){
-            str.append(",").append(String.format("%.2f", (float) hits.get(i).getComponent()));            
+            str.append(",").append(String.format("%.4f", (float) (hits.get(i).getComponent()/112.)));            
         }
         return str.toString();
     }
