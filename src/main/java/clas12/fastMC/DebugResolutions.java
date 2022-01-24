@@ -17,8 +17,6 @@ import org.jlab.jnp.geom.prim.Path3D;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.io.HipoReader;
-import org.jlab.jnp.pdg.PDGDatabase;
-import org.jlab.jnp.pdg.PDGParticle;
 import org.jlab.jnp.physics.EventFilter;
 import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.PhysicsEvent;
@@ -89,8 +87,9 @@ public class DebugResolutions {
                     
                 }
             }
-        }                
+        }
     }
+    
     public static Particle random(int pid, double pmin, double pmax, double thmin, double thmax, double phimin, double phimax){
        double cosmin = Math.cos(thmax);
        double cosmax = Math.cos(thmin);

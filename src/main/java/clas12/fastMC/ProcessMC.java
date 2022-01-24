@@ -146,6 +146,11 @@ public class ProcessMC {
         writer.close();
     }
     
+    public void initResolutions(){
+        clas12FastMC.initResolutions();
+        clas12FastMC.setResolution(true);
+    }
+    
     public void init(){
         System.out.println("INITIALIZING FAST MC ");
         clas12FastMC = new Clas12FastMC();
@@ -199,6 +204,7 @@ public class ProcessMC {
         store.getOptionParser("-fastmc").addOption("-f", "X+:X-:Xn", "mc event filter");
         store.getOptionParser("-fastmc").addOption("-wf", "X+:X-:Xn", "output write filter");
         store.getOptionParser("-fastmc").addOption("-n", "-1", "number of events to process");
+        store.getOptionParser("-fastmc").addOption("-res", "false", "enable/disable resolutions");
         
         store.parse(args);
         
@@ -214,12 +220,17 @@ public class ProcessMC {
             String       output = store.getOptionParser("-fastmc").getOption("-o").stringValue();
             String       filter = store.getOptionParser("-fastmc").getOption("-f").stringValue();
             String       outfilter = store.getOptionParser("-fastmc").getOption("-wf").stringValue();
+            String       resolutions = store.getOptionParser("-fastmc").getOption("-res").stringValue();
             
             ProcessMC mc = new ProcessMC();
             mc.getChain().addFiles(files);
             mc.setOutput(output);
             mc.init();
             mc.setMCFilter(filter).setOutFilter(outfilter);
+            if(resolutions.compareTo("false")!=0){
+                mc.initResolutions();
+            }
+            
             mc.open();
             mc.process(maxEvents);
         }
