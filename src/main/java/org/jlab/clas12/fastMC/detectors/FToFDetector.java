@@ -66,6 +66,7 @@ public class FToFDetector extends Detector {
 
 
     private Shape3D createSector1B(){
+        
         Shape3D sector = new Shape3D();
         Triangle3D triangle1 = new Triangle3D(115.31825,  -407.9/2.0, 0.0,
                                               115.38125,   407.9/2.0, 0.0,

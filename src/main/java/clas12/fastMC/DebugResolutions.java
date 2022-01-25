@@ -9,14 +9,19 @@ import java.util.List;
 import java.util.Random;
 import org.jlab.clas12.fastMC.base.DetectorHit;
 import org.jlab.clas12.fastMC.core.Clas12FastMC;
+import org.jlab.clas12.fastMC.detectors.DCDetector;
 import org.jlab.clas12.fastMC.detectors.DCDetectorLayers;
+import org.jlab.clas12.fastMC.detectors.FToFDetector;
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.data.H2F;
 import org.jlab.groot.ui.TCanvas;
+import org.jlab.groot.ui.TGCanvas;
 import org.jlab.jnp.geom.prim.Path3D;
+import org.jlab.jnp.geom.prim.Vector3D;
 import org.jlab.jnp.hipo4.data.Bank;
 import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.io.HipoReader;
+import org.jlab.jnp.hipo4.io.HipoWriter;
 import org.jlab.jnp.physics.EventFilter;
 import org.jlab.jnp.physics.Particle;
 import org.jlab.jnp.physics.PhysicsEvent;
@@ -220,6 +225,65 @@ public class DebugResolutions {
         w3.close();
         System.out.println(">>>> DONE");
     }
+    
+    
+    public static void debugFTOF(){
+        Clas12FastMC clas12FastMC = Clas12FastMC.clas12forward();
+        FToFDetector ftof = new FToFDetector();
+        
+        DCDetectorLayers dc = new DCDetectorLayers();
+        DCDetector dc2 = new DCDetector();
+        
+        H2F hxy = new H2F("hxy",120,-500,500,120,-500,500);
+        H2F hxz = new H2F("hxy",120,-500,500,120,0,900);
+        H2F hyz = new H2F("hxy",120,-500,500,120,0,900);
+        
+        TGCanvas c = new TGCanvas("c","",500,500);
+        c.getCanvas().initTimer(1000);
+        c.divide(2, 2);
+        c.cd(0);
+        c.draw(hxy);
+        c.cd(1);
+        c.draw(hxz);
+        c.cd(2);
+        c.draw(hyz);
+        
+        HipoWriter w = new HipoWriter();
+        w.getSchemaFactory().addSchema(LundConverter.getParticleSchema("mc::event", 2002, 1));
+        w.open("pions.hipo");
+        Event event = new Event();
+        int counter = 0;
+        int iter    = 20000;
+        for(int i = 0; i < iter; i++){
+            Particle p = Particle.random(-211, 0.5, 10.0, 0.0, Math.toRadians(90), 
+                    -Math.PI, Math.PI);
+            //System.out.println(p.toString());
+            Path3D path = clas12FastMC.getPath(p);
+            List<DetectorHit> hits = ftof.getHits(path);
+            List<DetectorHit> dchits = dc.getHits(path);
+            List<DetectorHit> dchits2 = dc2.getHits(path);
+            
+            //System.out.println("# = " + hits.size()); 
+            
+            if(hits.size()>0&&dchits.size()>35){
+                //System.out.println(dchits.size());
+                Vector3D v = hits.get(0).getHitPosition();
+                hxy.fill(v.x(), v.y());
+                hxz.fill(v.x(), v.z());
+                hyz.fill(v.y(), v.z());
+                event.reset();
+                PhysicsEvent phys = new PhysicsEvent();
+                phys.addParticle(p);
+                Bank b = LundConverter.event2bank(phys);
+                event.write(b);
+                w.addEvent(event);
+                counter++;
+            }  
+        }
+        w.close();
+        System.out.printf("counter %d, ratio = %f\n",counter, 
+                ((double) counter)/iter);
+    }
     /**
      * This program tests the resolution functions on files produced
      * with clasdis with flag --pid 113
@@ -227,10 +291,12 @@ public class DebugResolutions {
      */
     public static void main(String[] args){
         
-        String filename = "dis_generated_10M.hipo";
+        //String filename = "dis_generated_10M.hipo";
         
-        DebugResolutions res = new DebugResolutions();
+        //DebugResolutions res = new DebugResolutions();
         //res.processFile(filename);
-        DebugResolutions.produce(1200*5000);
+        //DebugResolutions.produce(1200*5000);
+        
+        DebugResolutions.debugFTOF();
     }
 }

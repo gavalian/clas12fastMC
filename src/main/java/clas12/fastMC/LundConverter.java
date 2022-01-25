@@ -22,6 +22,24 @@ import org.jlab.jnp.utils.benchmark.ProgressPrintout;
  */
 public class LundConverter {
     
+    
+    public static Bank  event2bank(PhysicsEvent phys){
+        Bank b = new Bank(LundConverter.getParticleSchema("mc::event", 2002, 1),phys.count());
+        for(int i = 0; i < phys.count(); i++){
+            Particle p = phys.getParticle(i);
+            b.putInt("pid", i, p.pid());
+            b.putFloat("px", i, (float) p.vector().px());
+            b.putFloat("py", i, (float) p.vector().py());
+            b.putFloat("pz", i, (float) p.vector().pz());
+            b.putFloat("vx", i, (float) p.vertex().x());
+            b.putFloat("vy", i, (float) p.vertex().y());
+            b.putFloat("vz", i, (float) p.vertex().z());
+            b.putInt("charge", i, p.charge());
+            b.putInt("status", i, 1);            
+        }
+        return b;
+    }
+    
     public static Schema getParticleSchema(String name, int group, int id){
         
         SchemaBuilder schemaBuilder = new SchemaBuilder(name,group,id);

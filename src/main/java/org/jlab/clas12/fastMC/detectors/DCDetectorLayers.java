@@ -6,6 +6,7 @@ package org.jlab.clas12.fastMC.detectors;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jlab.clas12.fastMC.base.Detector;
 import org.jlab.clas12.fastMC.base.DetectorHit;
 import org.jlab.jnp.geom.prim.Face3D;
 import org.jlab.jnp.geom.prim.Line3D;
@@ -18,7 +19,7 @@ import org.jlab.jnp.geom.prim.Triangle3D;
  *
  * @author gavalian
  */
-public class DCDetectorLayers {
+public class DCDetectorLayers extends Detector {
     
     
     public DCDetectorLayers(){
@@ -120,6 +121,7 @@ public class DCDetectorLayers {
         return str.toString();
     }
     
+    @Override
     public List<DetectorHit> getHits(Path3D path){
         int sector = this.getSectorIntersection(path);
         List<DetectorHit>  hits = new ArrayList<>();
@@ -166,5 +168,16 @@ public class DCDetectorLayers {
         this.getEnd(s.face(1).point(0), sector, layer,0);
         this.getEnd(s.face(1).point(1), sector, layer,111);
         this.getOrigin(s.face(1).point(2), sector, layer,111);
+    }
+
+    @Override
+    public boolean validHit(Path3D path) {
+        return true;
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void init() {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
